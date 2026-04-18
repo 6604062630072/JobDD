@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.bun/
+
+# Build outputs
+dist/
+.next/
+.turbo/
+out/
+
+# Prisma
+apps/api/prisma/*.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+
+# Docker
+docker/data/
+
+# Coverage
+coverage/
+
+# Misc
+*.tsbuildinfo

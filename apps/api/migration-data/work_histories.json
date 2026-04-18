@@ -1,0 +1,22 @@
+{
+  "table": "work_histories",
+  "exportedAt": "2026-03-08T07:27:12.826Z",
+  "rowCount": 1,
+  "rows": [
+    {
+      "id": "41700561-6617-41bb-b136-7a4ff4127817",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "company": "หมูเด้ง",
+      "businessType": "เทคโนโลยีสารสนเทศ",
+      "position": "IT Support",
+      "jobType": "งานประจำ (Full-time)",
+      "startMonth": "9",
+      "startYear": "2567",
+      "endMonth": "6",
+      "endYear": "2568",
+      "isCurrent": 0,
+      "createdAt": "2026-03-07 05:39:58.711",
+      "updatedAt": "2026-03-07 05:39:58.711"
+    }
+  ]
+}

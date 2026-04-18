@@ -1,0 +1,37 @@
+{
+  "table": "user_languages",
+  "exportedAt": "2026-03-08T07:27:12.826Z",
+  "rowCount": 3,
+  "rows": [
+    {
+      "id": "4d34929f-0d45-4df8-b38f-35ced98a08a6",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "language": "ภาษาอังกฤษ",
+      "level": "ดี (Good)",
+      "createdAt": "2026-03-05 09:35:28.020",
+      "reading": "ดี",
+      "speaking": "พอใช้",
+      "writing": "พอใช้"
+    },
+    {
+      "id": "94d1455b-7daa-4a02-8828-6ce973ef112c",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "language": "ภาษาไทย",
+      "level": "ดี (Good)",
+      "createdAt": "2026-03-05 09:35:28.020",
+      "reading": "พอใช้",
+      "speaking": "ดีเยี่ยม",
+      "writing": "ดี"
+    },
+    {
+      "id": "cfbc7877-92b9-4dcd-9496-a3a13e02c6a3",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "language": "ภาษาจีน (แมนดาริน)",
+      "level": "ดี (Good)",
+      "createdAt": "2026-03-05 09:35:28.020",
+      "reading": "ดี",
+      "speaking": "ดี",
+      "writing": "พอใช้"
+    }
+  ]
+}

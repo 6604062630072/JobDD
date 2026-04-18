@@ -1,0 +1,77 @@
+{
+  "table": "users",
+  "exportedAt": "2026-03-08T07:27:12.818Z",
+  "rowCount": 5,
+  "rows": [
+    {
+      "id": "023f6f27-4036-483d-b931-e98f4cb0bc19",
+      "email": "coco1@gmail.com",
+      "passwordHash": "$2b$12$9MKFjalc2O6NQSM8F7gUY.gZAtD5c8AgMocZtbwdZS9Ufyy7zJyXS",
+      "role": "ADMIN",
+      "firstName": "Admin",
+      "lastName": "",
+      "phone": "092-929-2211",
+      "avatarUrl": null,
+      "createdAt": "2026-03-07 19:08:15.968",
+      "updatedAt": "2026-03-07 19:08:15.968",
+      "googleId": null,
+      "lineId": null
+    },
+    {
+      "id": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "email": "jaidee1@gmail.com",
+      "passwordHash": "$2b$12$nV38enxlJBq2HcTd4rryU.n6/GN.8D5oLGFQobyAuxqB0mhrX4jxS",
+      "role": "JOBSEEKER",
+      "firstName": "ศุภกร",
+      "lastName": "หมูเด้ง",
+      "phone": "093-995-9522",
+      "avatarUrl": "http://localhost:3001/uploads/avatar-1772875046432-194041838.jpg",
+      "createdAt": "2026-03-05 09:13:17.817",
+      "updatedAt": "2026-03-07 09:17:26.437",
+      "googleId": null,
+      "lineId": null
+    },
+    {
+      "id": "4c0b9c58-e982-43d1-ab0c-051e6ae7880a",
+      "email": "kornsuppakorn000@gmail.com",
+      "passwordHash": "$2b$12$y46Nfz4yrQ8lFkgIzhi.u.ZTnSh88WYTkq/b3TV6FvZ1g8JjbjAky",
+      "role": "EMPLOYER",
+      "firstName": "สมใจ",
+      "lastName": ".",
+      "phone": "092-929-2211",
+      "avatarUrl": null,
+      "createdAt": "2026-03-07 09:06:41.547",
+      "updatedAt": "2026-03-07 09:06:41.547",
+      "googleId": null,
+      "lineId": null
+    },
+    {
+      "id": "af52c99e-6a59-4da0-9024-91e081f41903",
+      "email": "Banani1@gmail.com",
+      "passwordHash": "$2b$12$2Lu87CmBjv3UGiJfpOkbxeiE4h9xQ0f4HKJzfqOe8QFtN8py3Qb0e",
+      "role": "EMPLOYER",
+      "firstName": "Banani TI",
+      "lastName": ".",
+      "phone": "0939959522",
+      "avatarUrl": null,
+      "createdAt": "2026-03-03 18:09:59.647",
+      "updatedAt": "2026-03-03 18:09:59.647",
+      "googleId": null,
+      "lineId": null
+    },
+    {
+      "id": "e3936af7-a21d-4656-a017-c1be285ac2e7",
+      "email": "gamemer@gmail.com",
+      "passwordHash": "$2b$12$Fbff4hd1Dx7km8/uOGlOd./c4KQg6aLSS/r1Fj16WZRZmt9r9XeS6",
+      "role": "EMPLOYER",
+      "firstName": "GgGame",
+      "lastName": ".",
+      "phone": "092-929-2211",
+      "avatarUrl": null,
+      "createdAt": "2026-03-07 19:42:17.724",
+      "updatedAt": "2026-03-07 19:42:17.724",
+      "googleId": null,
+      "lineId": null
+    }
+  ]
+}

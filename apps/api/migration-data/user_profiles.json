@@ -1,0 +1,27 @@
+{
+  "table": "user_profiles",
+  "exportedAt": "2026-03-08T07:27:12.824Z",
+  "rowCount": 1,
+  "rows": [
+    {
+      "id": "86f5ed41-3cbc-462e-86ab-c940b9a89e1b",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "birthDate": "2007-10-12 00:00:00.000",
+      "height": 170,
+      "weight": 80,
+      "gender": "male",
+      "phone": "0939959522",
+      "lineId": "Kooo",
+      "nationality": "ไทย",
+      "maritalStatus": "โสด",
+      "militaryStatus": "ผ่านการเกณฑ์ทหารแล้ว",
+      "address": "888/50 หมู่ 8 ต.ในเมือง เมืองพังงา พังงา 62744",
+      "province": "พังงา",
+      "district": "เมืองพังงา",
+      "subDistrict": "เกาะปันหยี",
+      "postalCode": "82000",
+      "createdAt": "2026-03-05 09:14:54.763",
+      "updatedAt": "2026-03-07 05:39:49.489"
+    }
+  ]
+}

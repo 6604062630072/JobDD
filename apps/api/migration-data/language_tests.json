@@ -1,0 +1,15 @@
+{
+  "table": "language_tests",
+  "exportedAt": "2026-03-08T07:27:12.827Z",
+  "rowCount": 1,
+  "rows": [
+    {
+      "id": "33e76469-df81-41dd-bc9f-936e26166357",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "testName": "IELTS",
+      "score": "7.5",
+      "createdAt": "2026-03-05 09:35:28.020",
+      "fileUrl": "http://localhost:3001/uploads/doc-1772703327967-608316957.pdf"
+    }
+  ]
+}

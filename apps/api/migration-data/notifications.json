@@ -1,0 +1,40 @@
+{
+  "table": "notifications",
+  "exportedAt": "2026-03-08T07:27:12.829Z",
+  "rowCount": 3,
+  "rows": [
+    {
+      "id": "9c6c1dc3-f154-4a33-be5e-ca368ef3e07d",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "type": "STATUS_CHANGE",
+      "title": "⭐ คุณผ่านรอบคัดเลือก!",
+      "message": "ยินดีด้วย! บริษัท Banani TI เลือกคุณเข้ารอบถัดไปสำหรับตำแหน่ง \"พนักงานต้อนรับ (Receptionist)\"",
+      "linkUrl": "/jobs/พนักงานต้อนรับ-receptionist-mmbt21lz-92",
+      "applicationId": "bc8db9b9-7a25-45d2-a3ee-f9817b5f130f",
+      "isRead": 0,
+      "createdAt": "2026-03-07 09:24:01.189"
+    },
+    {
+      "id": "de3e7312-56fb-42b6-8b2c-0f45880a7734",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "type": "INTERVIEW_SCHEDULED",
+      "title": "🗓️ นัดสัมภาษณ์",
+      "message": "บริษัท Banani TI นัดสัมภาษณ์ตำแหน่ง \"พนักงานต้อนรับ (Receptionist)\" วันที่ 8 มีนาคม 2569 เวลา 17:00",
+      "linkUrl": "/jobs/พนักงานต้อนรับ-receptionist-mmbt21lz-92",
+      "applicationId": "bc8db9b9-7a25-45d2-a3ee-f9817b5f130f",
+      "isRead": 1,
+      "createdAt": "2026-03-07 05:13:48.728"
+    },
+    {
+      "id": "e2c607e4-ccac-41bd-ad72-b5c2c218760f",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "type": "STATUS_CHANGE",
+      "title": "⭐ คุณผ่านรอบคัดเลือก!",
+      "message": "ยินดีด้วย! บริษัท Banani TI เลือกคุณเข้ารอบถัดไปสำหรับตำแหน่ง \"พนักงานต้อนรับ (Receptionist)\"",
+      "linkUrl": "/jobs/พนักงานต้อนรับ-receptionist-mmbt21lz-92",
+      "applicationId": "bc8db9b9-7a25-45d2-a3ee-f9817b5f130f",
+      "isRead": 1,
+      "createdAt": "2026-03-07 05:13:26.578"
+    }
+  ]
+}

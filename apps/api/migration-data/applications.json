@@ -1,0 +1,106 @@
+{
+  "table": "applications",
+  "exportedAt": "2026-03-08T07:27:12.828Z",
+  "rowCount": 9,
+  "rows": [
+    {
+      "id": "151e84c6-134d-4c48-be38-c2a8c5777903",
+      "jobId": "0fb65923-a812-4d23-8963-f088f4dbe48e",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "INTERVIEW",
+      "appliedAt": "2026-03-05 10:40:37.487",
+      "updatedAt": "2026-03-05 10:43:02.590",
+      "interviewDate": "2026-03-06 10:00:00.000"
+    },
+    {
+      "id": "43eda153-9184-4574-a154-776fa9abcbb2",
+      "jobId": "110fa70e-f162-47ea-8e41-33dff9fe8845",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "INTERVIEW",
+      "appliedAt": "2026-03-05 10:40:47.853",
+      "updatedAt": "2026-03-05 10:41:16.822",
+      "interviewDate": "2026-03-06 10:00:00.000"
+    },
+    {
+      "id": "6bfe74be-17f5-4a20-8e4d-027cf9eb215a",
+      "jobId": "eec265f0-8da2-4ea0-98a1-64097dbe5c94",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "REJECTED",
+      "appliedAt": "2026-03-05 10:16:10.657",
+      "updatedAt": "2026-03-05 10:18:34.470",
+      "interviewDate": null
+    },
+    {
+      "id": "75f02899-3445-4de5-895f-e8b02218bc76",
+      "jobId": "539984d2-7eda-4ab1-9499-35aa8ea6ef66",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "REJECTED",
+      "appliedAt": "2026-03-05 10:16:04.550",
+      "updatedAt": "2026-03-05 10:18:36.146",
+      "interviewDate": null
+    },
+    {
+      "id": "994f16ca-8f9a-4627-b0e8-7340bb9b634c",
+      "jobId": "f2b4b494-b46c-4472-834b-89c11bccf9fe",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "INTERVIEW",
+      "appliedAt": "2026-03-05 09:40:23.178",
+      "updatedAt": "2026-03-05 10:13:54.807",
+      "interviewDate": "2026-03-06 12:00:00.000"
+    },
+    {
+      "id": "9ef63a33-c393-4301-8375-853bd3f8e8c7",
+      "jobId": "ea707a26-34ce-41c6-942c-146eb15d6bae",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "REJECTED",
+      "appliedAt": "2026-03-05 10:16:18.036",
+      "updatedAt": "2026-03-05 10:18:32.429",
+      "interviewDate": null
+    },
+    {
+      "id": "afe18696-3c52-4cc3-beab-b92b12ce53f5",
+      "jobId": "616652cf-ffb8-4d1c-a87b-dda08310c26c",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "INTERVIEW",
+      "appliedAt": "2026-03-05 10:16:28.540",
+      "updatedAt": "2026-03-05 10:30:55.022",
+      "interviewDate": "2026-04-02 10:00:00.000"
+    },
+    {
+      "id": "bc8db9b9-7a25-45d2-a3ee-f9817b5f130f",
+      "jobId": "b635cdc1-ef3c-4a8e-80c4-290902d75c07",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "SHORTLISTED",
+      "appliedAt": "2026-03-07 05:13:12.374",
+      "updatedAt": "2026-03-07 09:24:01.185",
+      "interviewDate": "2026-03-08 10:00:00.000"
+    },
+    {
+      "id": "d6b893f9-a426-4d10-909b-cb6b6f3cba9f",
+      "jobId": "3fb0d41d-f55d-48aa-bab4-c2860de2f316",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "resumeId": "3eb85382-c771-4429-8965-1644dd8bb0ca",
+      "coverLetter": null,
+      "status": "INTERVIEW",
+      "appliedAt": "2026-03-05 10:16:32.792",
+      "updatedAt": "2026-03-05 10:30:47.838",
+      "interviewDate": "2026-03-09 10:00:00.000"
+    }
+  ]
+}

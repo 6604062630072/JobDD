@@ -1,0 +1,16 @@
+{
+  "table": "certificates",
+  "exportedAt": "2026-03-08T07:27:12.828Z",
+  "rowCount": 1,
+  "rows": [
+    {
+      "id": "bd556fef-1c50-4f1d-beb7-e5d8ea30d2f6",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "name": "AWS",
+      "issuedBy": "AWS",
+      "issueYear": "2568",
+      "imageUrl": "http://localhost:3001/uploads/1772703383231-509928338.jpg",
+      "createdAt": "2026-03-05 09:36:23.261"
+    }
+  ]
+}

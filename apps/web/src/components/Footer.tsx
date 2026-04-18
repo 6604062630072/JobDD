@@ -1,0 +1,102 @@
+import React from 'react';
+import Image from 'next/image';
+import { Globe, Briefcase, MessageSquareText } from 'lucide-react';
+import { Link } from '@/i18n/routing';
+import { useTranslations } from 'next-intl';
+
+export const Footer: React.FC = () => {
+    const t = useTranslations('Footer');
+
+    return (
+        <footer className="bg-[#020263] text-gray-300 py-12 px-6 md:px-12 lg:px-24 font-sans">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+
+                {/* Column 1: Brand & Description */}
+                <div className="lg:pr-8">
+                    <Link href="/" className="flex items-center gap-3 mb-6">
+                        <div className="bg-white rounded-full w-10 h-10 flex items-center justify-center overflow-hidden relative">
+                            {/* เปลี่ยน path รูปภาพใน src ด้านล่างนี้เป็นรูปล็อกโก้ของคุณ เช่น "/images/logo.png" (ถ้ารูปอยู่ในโฟลเดอร์ public/images) */}
+                            <Image
+                                src="/images/JobDD_w.png"
+                                alt="JobDD Logo"
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+                        <span className="text-white font-bold text-xl tracking-wide">
+                            JobDD
+                        </span>
+                    </Link>
+                    <p className="text-sm leading-relaxed mb-8 text-gray-400">
+                        {t('description')}
+                    </p>
+                    <div className="flex gap-4">
+                        <Link
+                            href="/"
+                            className="bg-white/10 p-2.5 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300"
+                            aria-label="Website Language/Region"
+                        >
+                            <Globe size={18} />
+                        </Link>
+                        <Link
+                            href="/jobs"
+                            className="bg-white/10 p-2.5 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300"
+                            aria-label="Jobs"
+                        >
+                            <Briefcase size={18} />
+                        </Link>
+                        <Link
+                            href="/contact-us"
+                            className="bg-white/10 p-2.5 rounded-full hover:bg-blue-600 hover:text-white transition-all duration-300"
+                            aria-label="Contact or Chat"
+                        >
+                            <MessageSquareText size={18} />
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Column 2: Links - หางาน */}
+                <div>
+                    <h3 className="text-white font-semibold text-base mb-6">{t('findJobs')}</h3>
+                    <ul className="space-y-4 text-sm text-gray-400">
+                        <li><Link href="/jobs" className="hover:text-blue-400 transition-colors duration-200 block">{t('allJobs')}</Link></li>
+                        <li><Link href="/jobs" className="hover:text-blue-400 transition-colors duration-200 block">{t('urgentJobs')}</Link></li>
+                        <li><Link href="/resumes" className="hover:text-blue-400 transition-colors duration-200 block">{t('searchResumes')}</Link></li>
+                        <li><Link href="/all_group_job" className="hover:text-blue-400 transition-colors duration-200 block">{t('regionalJobs')}</Link></li>
+                    </ul>
+                </div>
+
+                {/* Column 3: Links - สำหรับผู้สมัครงาน */}
+                <div>
+                    <h3 className="text-white font-semibold text-base mb-6">{t('forJobSeekers')}</h3>
+                    <ul className="space-y-4 text-sm text-gray-400">
+                        <li><Link href="/profile" className="hover:text-blue-400 transition-colors duration-200 block">{t('createResume')}</Link></li>
+                        <li><Link href="/saved-jobs" className="hover:text-blue-400 transition-colors duration-200 block">{t('savedJobs')}</Link></li>
+                        <li><Link href="/applications" className="hover:text-blue-400 transition-colors duration-200 block">{t('applications')}</Link></li>
+                        <li><Link href="/ai-job-matcher" className="hover:text-blue-400 transition-colors duration-200 block">{t('aiMatcher')}</Link></li>
+                    </ul>
+                </div>
+
+                {/* Column 4: Links - ช่วยเหลือและสนับสนุน */}
+                <div>
+                    <h3 className="text-white font-semibold text-base mb-6">{t('support')}</h3>
+                    <ul className="space-y-4 text-sm text-gray-400">
+                        <li><Link href="/contact-us" className="hover:text-blue-400 transition-colors duration-200 block">{t('contact')}</Link></li>
+                        <li><Link href="/privacy-policy" className="hover:text-blue-400 transition-colors duration-200 block">{t('privacyPolicy')}</Link></li>
+                        <li><Link href="#" className="hover:text-blue-400 transition-colors duration-200 block">{t('terms')}</Link></li>
+                        <li><Link href="#" className="hover:text-blue-400 transition-colors duration-200 block">{t('faq')}</Link></li>
+                    </ul>
+                </div>
+            </div>
+
+            {/* Bottom Footer Section */}
+            <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-4 text-xs text-gray-400">
+                <p>{t('copyright')}</p>
+                <div className="flex gap-6">
+                    <Link href="#" className="hover:text-blue-400 transition-colors duration-200">{t('terms')}</Link>
+                    <Link href="#" className="hover:text-blue-400 transition-colors duration-200">{t('cookiePolicy')}</Link>
+                </div>
+            </div>
+        </footer>
+    );
+};

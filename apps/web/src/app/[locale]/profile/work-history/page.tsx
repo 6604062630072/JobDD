@@ -1,0 +1,694 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from '@/i18n/routing';
+import { useAuth } from '@/context/AuthContext';
+import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
+import { SearchableSelect } from '@/components/SearchableSelect';
+import {
+  User,
+  GraduationCap,
+  Briefcase,
+  Languages,
+  Award,
+  Plus,
+  Trash2,
+  Loader2,
+  Check,
+  ArrowUp,
+  ArrowDown,
+  FileText,
+} from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+
+const profileSteps = [
+  { icon: User, label: 'ข้อมูลส่วนบุคคล', completed: true, active: false },
+  { icon: GraduationCap, label: 'ประวัติการศึกษา', completed: true, active: false },
+  { icon: Briefcase, label: 'ประวัติการทำงาน', completed: false, active: true },
+  { icon: Languages, label: 'ความสามารถทางภาษา', completed: false, active: false },
+  { icon: Award, label: 'ใบประกาศนียบัตร', completed: false, active: false },
+];
+
+const BUSINESS_TYPES = [
+
+  'เทคโนโลยีสารสนเทศ',
+  'การเงิน/ธนาคาร',
+  'การผลิต/อุตสาหกรรม',
+  'ค้าปลีก/ค้าส่ง',
+  'อาหารและเครื่องดื่ม',
+  'การศึกษา',
+  'สุขภาพ/การแพทย์',
+  'อสังหาริมทรัพย์/ก่อสร้าง',
+  'โลจิสติกส์/ขนส่ง',
+  'สื่อ/โฆษณา/ประชาสัมพันธ์',
+  'โทรคมนาคม',
+  'การท่องเที่ยว/โรงแรม',
+  'ประกันภัย',
+  'พลังงาน',
+  'เกษตรกรรม',
+  'ราชการ/รัฐวิสาหกิจ',
+  'องค์กรไม่แสวงหาผลกำไร',
+
+  'อีคอมเมิร์ซ/แพลตฟอร์มออนไลน์',
+  'บริการวิชาชีพ (ที่ปรึกษา/กฎหมาย/บัญชี)',
+  'บริการจัดหางาน/ทรัพยากรบุคคล',
+  'ยานยนต์และชิ้นส่วน',
+  'สินค้าอุปโภคบริโภค (FMCG)',
+  'นำเข้าและส่งออก',
+  'ความงาม/แฟชั่น/สปา',
+  'บันเทิง/ศิลปะ/นันทนาการ',
+  'เหมืองแร่/ปิโตรเคมี/เคมีภัณฑ์',
+  'บริการรักษาความปลอดภัย/จัดการอาคาร',
+
+  'อื่นๆ'
+];
+
+
+
+// Job types
+const JOB_TYPES = [
+  'งานประจำ (Full-time)',
+  'งานพาร์ทไทม์ (Part-time)',
+  'สัญญาจ้าง (Contract)',
+  'ฟรีแลนซ์ (Freelance)',
+  'ฝึกงาน (Internship)',
+];
+
+const months = [
+  'มกราคม',
+  'กุมภาพันธ์',
+  'มีนาคม',
+  'เมษายน',
+  'พฤษภาคม',
+  'มิถุนายน',
+  'กรกฎาคม',
+  'สิงหาคม',
+  'กันยายน',
+  'ตุลาคม',
+  'พฤศจิกายน',
+  'ธันวาคม',
+];
+
+const currentYear = new Date().getFullYear() + 543;
+const years = Array.from({ length: 50 }, (_, i) => String(currentYear - i));
+const monthOptions = months.map((month, index) => ({ value: String(index + 1), label: month }));
+const yearOptions = years.map((year) => ({ value: year, label: year }));
+
+interface SavedWorkEntry {
+  id: string;
+  company: string;
+  businessType: string;
+  position: string;
+  jobType: string;
+  startMonth: string;
+  startYear: string;
+  endMonth: string;
+  endYear: string;
+  isCurrent: boolean;
+}
+
+interface WorkEntry {
+  id: string;
+  company: string;
+  businessType: string;
+  position: string;
+  jobType: string;
+  startMonth: string;
+  startYear: string;
+  endMonth: string;
+  endYear: string;
+  isCurrent: boolean;
+}
+
+interface JobPreference {
+  id: string;
+  position: string;
+}
+
+function createEntry(): WorkEntry {
+  return {
+    id: Math.random().toString(36).slice(2),
+    company: '',
+    businessType: '',
+    position: '',
+    jobType: '',
+    startMonth: '',
+    startYear: '',
+    endMonth: '',
+    endYear: '',
+    isCurrent: false,
+  };
+}
+
+function createJobPreference(): JobPreference {
+  return {
+    id: Math.random().toString(36).slice(2),
+    position: '',
+  };
+}
+
+export default function WorkHistoryPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const [entries, setEntries] = useState<WorkEntry[]>([createEntry()]);
+  const [jobPreferences, setJobPreferences] = useState<JobPreference[]>([createJobPreference()]);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const completionPercent = 60;
+  const circumference = 2 * Math.PI * 54;
+  const strokeDashoffset = circumference - (completionPercent / 100) * circumference;
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
+
+  // Load existing data
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+
+    // Fetch work histories
+    fetch(`${API_URL}/users/me/work-histories`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setEntries(
+            data.map((d: SavedWorkEntry) => ({
+              id: d.id || Math.random().toString(36).slice(2),
+              company: d.company || '',
+              businessType: d.businessType || '',
+              position: d.position || '',
+              jobType: d.jobType || '',
+              startMonth: d.startMonth || '',
+              startYear: d.startYear || '',
+              endMonth: d.endMonth || '',
+              endYear: d.endYear || '',
+              isCurrent: d.isCurrent || false,
+            })),
+          );
+        }
+      })
+      .catch(() => { });
+
+    // Fetch job preferences
+    fetch(`${API_URL}/users/me/job-preferences`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setJobPreferences(
+            data.map((d: any) => ({
+              id: d.id || Math.random().toString(36).slice(2),
+              position: d.position || '',
+            })),
+          );
+        }
+      })
+      .catch(() => { });
+  }, [user]);
+
+  const updateEntry = (id: string, field: keyof WorkEntry, value: string | boolean) => {
+    setEntries((prev) => prev.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
+  };
+
+  const addEntry = () => setEntries((prev) => [...prev, createEntry()]);
+
+  const removeEntry = (id: string) => {
+    if (entries.length === 1) return;
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const updateJobPreference = (id: string, value: string) => {
+    setJobPreferences((prev) => prev.map((e) => (e.id === id ? { ...e, position: value } : e)));
+  };
+
+  const addJobPreference = () => setJobPreferences((prev) => [...prev, createJobPreference()]);
+
+  const removeJobPreference = (id: string) => {
+    if (jobPreferences.length === 1) return;
+    setJobPreferences((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const moveJobPreference = (index: number, direction: 'up' | 'down') => {
+    const newPreferences = [...jobPreferences];
+    if (direction === 'up' && index > 0) {
+      [newPreferences[index], newPreferences[index - 1]] = [newPreferences[index - 1], newPreferences[index]];
+    } else if (direction === 'down' && index < newPreferences.length - 1) {
+      [newPreferences[index], newPreferences[index + 1]] = [newPreferences[index + 1], newPreferences[index]];
+    }
+    setJobPreferences(newPreferences);
+  };
+
+  const handleSubmit = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const token = localStorage.getItem('accessToken');
+
+      // Save Work History
+      const validEntries = entries.filter((e) => e.company && e.company.trim() !== '');
+      const res1 = await fetch(`${API_URL}/users/me/work-histories`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items: validEntries.map(({ id, ...rest }) => rest),
+        }),
+      });
+      if (!res1.ok) throw new Error('Save work history failed');
+
+      // Save Job Preferences
+      const validPreferences = jobPreferences.filter((e) => e.position && e.position.trim() !== '');
+      const res2 = await fetch(`${API_URL}/users/me/job-preferences`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items: validPreferences.map(({ position }) => ({ position })),
+        }),
+      });
+      if (!res2.ok) throw new Error('Save job preferences failed');
+
+      setSaving(false);
+      setMessage({ type: 'success', text: 'บันทึกข้อมูลเรียบร้อยแล้ว ✓' });
+      setTimeout(() => router.push('/profile/languages'), 1000);
+    } catch {
+      setSaving(false);
+      setMessage({ type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+    }
+  };
+
+  const handleBack = () => router.push('/profile/education');
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans">
+      <Navbar />
+
+      {/* Progress Banner */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #0a1628 0%, #0e2a5e 40%, #1a3a7a 70%, #243b82 100%)',
+        }}
+      >
+        {/* Decorative background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div
+            className="absolute -top-20 -right-20 w-72 h-72 rounded-full opacity-[0.07]"
+            style={{ background: 'radial-gradient(circle, #60a5fa, transparent)' }}
+          />
+          <div
+            className="absolute -bottom-32 -left-16 w-80 h-80 rounded-full opacity-[0.05]"
+            style={{ background: 'radial-gradient(circle, #818cf8, transparent)' }}
+          />
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-[0.03]"
+            style={{ background: 'radial-gradient(circle, #93c5fd, transparent)' }}
+          />
+        </div>
+
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-14 relative z-10">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-1 h-6 rounded-full bg-linear-to-b from-blue-400 to-cyan-400" />
+            <h2 className="text-white text-4xl md:text-xl font-semibold tracking-wide">
+              ความสมบูรณ์ของโปรไฟล์
+            </h2>
+          </div>
+
+          {/* Main Glass Card */}
+          <div
+            className="rounded-2xl border border-white/10 p-6 md:p-8"
+            style={{ background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)' }}
+          >
+            <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+              {/* Progress Ring */}
+              <div className="relative shrink-0">
+                <div className="relative w-32 h-32 md:w-36 md:h-36">
+                  <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="54"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.08)"
+                      strokeWidth="8"
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="54"
+                      fill="none"
+                      stroke="url(#progressGradient)"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={strokeDashoffset}
+                      className="transition-all duration-1000 ease-out"
+                    />
+                    <defs>
+                      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#60a5fa" />
+                        <stop offset="50%" stopColor="#38bdf8" />
+                        <stop offset="100%" stopColor="#22d3ee" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl md:text-4xl font-bold text-white">
+                      {completionPercent}%
+                    </span>
+                    <span className="text-[10px] text-blue-300/80 mt-0.5">สำเร็จ</span>
+                  </div>
+                </div>
+                <div
+                  className="absolute inset-0 rounded-full opacity-20 blur-xl"
+                  style={{ background: 'radial-gradient(circle, #38bdf8, transparent)' }}
+                />
+              </div>
+
+              {/* Steps */}
+              <div className="flex-1 w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-2">
+                  {profileSteps.map((step, index) => {
+                    const Icon = step.icon;
+                    return (
+                      <button
+                        key={index}
+                        className={`group relative flex sm:flex-col items-center gap-3 sm:gap-2.5 p-3 sm:p-4 rounded-xl transition-all duration-300 cursor-pointer
+                          ${step.active
+                            ? 'bg-white/15 border border-white/20 shadow-lg shadow-blue-500/10'
+                            : 'hover:bg-white/6 border border-transparent'
+                          }`}
+                      >
+                        <div
+                          className={`relative shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all duration-300
+                          ${step.completed
+                              ? 'bg-linear-to-br from-blue-400 to-cyan-400 shadow-md shadow-cyan-400/20'
+                              : step.active
+                                ? 'bg-white/15 border border-white/20'
+                                : 'bg-white/6 border border-white/10'
+                            }`}
+                        >
+                          {step.completed ? (
+                            <Check className="w-5 h-5 text-white" strokeWidth={2.5} />
+                          ) : (
+                            <Icon
+                              className={`w-5 h-5 ${step.active ? 'text-blue-300' : 'text-white/30'}`}
+                            />
+                          )}
+                        </div>
+                        <span
+                          className={`text-xs sm:text-[11px] sm:text-center leading-tight font-medium transition-colors
+                          ${step.active || step.completed ? 'text-white' : 'text-white/40 group-hover:text-white/60'}`}
+                        >
+                          {step.label}
+                        </span>
+                        {step.active && (
+                          <div className="sm:hidden ml-auto w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Progress bar */}
+                <div className="hidden sm:block mt-5">
+                  <div className="h-1.5 bg-white/6 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{
+                        width: `${completionPercent}%`,
+                        background: 'linear-gradient(90deg, #60a5fa, #38bdf8, #22d3ee)',
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2 text-[10px] text-white/30">
+                    <span>เริ่มต้น</span>
+                    <span>สมบูรณ์</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {entries.map((entry) => (
+          <div
+            key={entry.id}
+            className="bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8 mb-6"
+          >
+            {/* Card header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-blue-600" />
+                ประวัติการทำงาน
+              </h2>
+              {entries.length > 1 && (
+                <button
+                  onClick={() => removeEntry(entry.id)}
+                  className="text-red-400 hover:text-red-600 transition-colors p-1"
+                  title="ลบรายการนี้"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Row 1: Company & Business Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">ชื่อบริษัท</label>
+                <input
+                  type="text"
+                  value={entry.company}
+                  onChange={(e) => updateEntry(entry.id, 'company', e.target.value)}
+                  placeholder="โปรดเลือก"
+                  className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">ประเภทธุรกิจ</label>
+                <SearchableSelect
+                  placeholder="โปรดเลือก"
+                  value={entry.businessType}
+                  onChange={(val) => updateEntry(entry.id, 'businessType', val)}
+                  options={BUSINESS_TYPES.map((b) => ({ value: b, label: b }))}
+                />
+              </div>
+            </div>
+
+            {/* Row 2: Position & Job Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">ตำแหน่ง</label>
+                <input
+                  type="text"
+                  value={entry.position}
+                  onChange={(e) => updateEntry(entry.id, 'position', e.target.value)}
+                  placeholder="โปรดระบุ"
+                  className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">ประเภทงาน</label>
+                <SearchableSelect
+                  placeholder="โปรดระบุ"
+                  value={entry.jobType}
+                  onChange={(val) => updateEntry(entry.id, 'jobType', val)}
+                  options={JOB_TYPES.map((j) => ({ value: j, label: j }))}
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Start Date & End Date */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">วันที่เริ่ม</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <SearchableSelect
+                    placeholder="เดือน"
+                    value={entry.startMonth}
+                    onChange={(val) => updateEntry(entry.id, 'startMonth', val)}
+                    options={monthOptions}
+                  />
+                  <SearchableSelect
+                    placeholder="ปี"
+                    value={entry.startYear}
+                    onChange={(val) => updateEntry(entry.id, 'startYear', val)}
+                    options={yearOptions}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">วันที่สิ้นสุด</label>
+                {entry.isCurrent ? (
+                  <div className="flex items-center h-[42px] px-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 text-sm font-medium">
+                    ปัจจุบัน
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <SearchableSelect
+                      placeholder="เดือน"
+                      value={entry.endMonth}
+                      onChange={(val) => updateEntry(entry.id, 'endMonth', val)}
+                      options={monthOptions}
+                    />
+                    <SearchableSelect
+                      placeholder="ปี"
+                      value={entry.endYear}
+                      onChange={(val) => updateEntry(entry.id, 'endYear', val)}
+                      options={yearOptions}
+                    />
+                  </div>
+                )}
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={entry.isCurrent}
+                    onChange={(e) => updateEntry(entry.id, 'isCurrent', e.target.checked)}
+                    className="w-4 h-4 accent-blue-600"
+                  />
+                  <span className="text-sm text-gray-600">ทำงานที่นี่อยู่ในปัจจุบัน</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Add more button */}
+        <button
+          onClick={addEntry}
+          className="w-full border-2 border-dashed border-gray-300 hover:border-blue-400 text-gray-500 hover:text-blue-600 rounded-xl py-4 flex items-center justify-center gap-2 transition-colors mb-8"
+        >
+          <Plus className="w-5 h-5" />
+          <span className="font-medium">เพิ่มประวัติการทำงาน</span>
+        </button>
+
+        {/* Job Preferences Section */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8 mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-800">ฝากประวัติ</h2>
+          </div>
+
+          <div className="pl-0 md:pl-7">
+            <h3 className="text-base font-semibold text-gray-700 mb-4">กรอกข้อมูล</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              ระบุตำแหน่งงานที่คุณสนใจ (สามารถระบุได้มากกว่า 1 ตำแหน่ง) ข้อมูลนี้จะถูกนำไปแสดงในส่วน "กำลังมองหางาน"
+            </p>
+
+            <div className="space-y-3">
+              {jobPreferences.map((pref, index) => (
+                <div key={pref.id} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={pref.position}
+                      onChange={(e) => updateJobPreference(pref.id, e.target.value)}
+                      placeholder="เช่น Graphic Designer, UX/UI Designer"
+                      className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                    />
+                  </div>
+
+                  {/* Reorder Buttons */}
+                  <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 border border-gray-200">
+                    <button
+                      onClick={() => moveJobPreference(index, 'up')}
+                      disabled={index === 0}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
+                      title="เลื่อนขึ้น"
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => moveJobPreference(index, 'down')}
+                      disabled={index === jobPreferences.length - 1}
+                      className="p-1.5 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
+                      title="เลื่อนลง"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Delete Button */}
+                  {jobPreferences.length > 1 && (
+                    <button
+                      onClick={() => removeJobPreference(pref.id)}
+                      className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="ลบรายการนี้"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={addJobPreference}
+              className="mt-4 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium rounded-lg transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              เพิ่มตำแหน่งงาน
+            </button>
+          </div>
+        </div>
+
+        {/* Message */}
+        {message && (
+          <div
+            className={`mb-6 p-4 rounded-lg text-sm font-medium ${message.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700'
+              }`}
+          >
+            {message.text}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            onClick={handleBack}
+            className="px-8 py-3 rounded-lg border border-gray-300 text-gray-600 font-medium hover:bg-gray-100 transition-colors"
+          >
+            ย้อนกลับ
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="bg-[#d32f2f] hover:bg-[#b71c1c] text-white px-12 py-3 rounded-lg font-bold text-lg shadow-md transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                กำลังบันทึก...
+              </>
+            ) : (
+              'บันทึกและถัดไป'
+            )}
+          </button>
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}

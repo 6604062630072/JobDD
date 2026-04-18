@@ -1,0 +1,632 @@
+{
+  "Navbar": {
+    "findJobs": "Find Jobs",
+    "companies": "Top Companies",
+    "aiJobMatcher": "AI Skill Matcher",
+    "login": "Login",
+    "register": "Register",
+    "forEmployers": "For Employers",
+    "hello": "Hello,",
+    "employerBackend": "Employer Workspace",
+    "profile": "Profile",
+    "editProfile": "Edit Profile",
+    "savedJobs": "Saved Jobs",
+    "applications": "Applications",
+    "logout": "Logout",
+    "languageSwitcher": "ภาษา / Language"
+  },
+  "NavbarSub": {
+    "home": "Home",
+    "quickSearch": "Quick Search",
+    "findJobs": "Find Jobs",
+    "findJobsSub": {
+      "bkk": "Bangkok & Vicinity",
+      "industrial": "Industrial Estate Jobs",
+      "hotel": "Hotel Jobs",
+      "internship": "Internships",
+      "coop": "Cooperative Education",
+      "disabled": "Jobs for the Disabled"
+    },
+    "searchResumes": "Find Job Seekers (Employers)",
+    "regionalJobs": "Regional Jobs",
+    "regionalJobsSub": {
+      "central": "Central Region",
+      "east": "Eastern Region",
+      "north": "Northern Region",
+      "northeast": "Northeastern Region",
+      "south": "Southern Region",
+      "west": "Western Region"
+    },
+    "userGuide": "User Guide",
+    "userGuideSub": {
+      "employer": "For Employers",
+      "jobseeker": "For Job Seekers"
+    },
+    "about": "About JobDD",
+    "aboutSub": {
+      "news": "News & Events",
+      "contact": "Contact Us",
+      "help": "Help Center"
+    }
+  },
+  "ContactUs": {
+    "title": "Contact Us",
+    "subtitle": "We are here to help you with everything about job search and recruitment.",
+    "contactInfo": "Contact Information",
+    "address": "Address",
+    "addressDetail": "123 Office Building, 10th Floor, Vibhavadi Rangsit Road, Chom Phon, Chatuchak, Bangkok 10900",
+    "phone": "Phone",
+    "email": "Email",
+    "workingHours": "Working Hours",
+    "workingHoursDetail": "Mon - Fri: 09:00 AM - 06:00 PM",
+    "formTitle": "Send us a Message",
+    "formSubtitle": "Fill in the details below, and our team will get back to you shortly.",
+    "name": "Full Name",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone Number",
+    "subject": "Subject",
+    "message": "Message",
+    "send": "Send Message",
+    "needhelp": "Need immediate assistance?",
+    "basicproblem": "Browse our FAQs for immediate solutions to common questions.",
+    "helpcenter": "Visit Help Center",
+    "messagedetails": "Please provide more details about your inquiry...",
+    "subjects": {
+      "general": "General Inquiry",
+      "jobseeker": "For Job Seekers",
+      "employer": "For Employers / Companies",
+      "technical": "Technical Issue",
+      "other": "Others"
+    }
+  },
+  "HeroSearch": {
+    "keywordPlaceholder": "Job Title, Company, or Keywords",
+    "provincePlaceholder": "All Provinces",
+    "searchProvince": "Search Province...",
+    "minsalary": "Min",
+    "provinces": {
+      "all": "All Provinces",
+      "selectprovince": "Select Province",
+      "bangkok": "Bangkok",
+      "krabi": "Krabi",
+      "kanchanaburi": "Kanchanaburi",
+      "kalasin": "Kalasin",
+      "kamphaeng_phet": "Kamphaeng Phet",
+      "khon_kaen": "Khon Kaen",
+      "chanthaburi": "Chanthaburi",
+      "chachoengsao": "Chachoengsao",
+      "chonburi": "Chonburi",
+      "chainat": "Chainat",
+      "chaiyaphum": "Chaiyaphum",
+      "chumphon": "Chumphon",
+      "chiang_rai": "Chiang Rai",
+      "chiang_mai": "Chiang Mai",
+      "trang": "Trang",
+      "trat": "Trat",
+      "tak": "Tak",
+      "nakhon_nayok": "Nakhon Nayok",
+      "nakhon_pathom": "Nakhon Pathom",
+      "nakhon_phanom": "Nakhon Phanom",
+      "nakhon_ratchasima": "Nakhon Ratchasima",
+      "nakhon_sawan": "Nakhon Sawan",
+      "nakhon_si_thammarat": "Nakhon Si Thammarat",
+      "nakhon_ratchasima_alt": "Korat",
+      "narathiwat": "Narathiwat",
+      "nan": "Nan",
+      "nonthaburi": "Nonthaburi",
+      "bueng_kan": "Bueng Kan",
+      "buriram": "Buriram",
+      "pathum_thani": "Pathum Thani",
+      "prachuap_khiri_khan": "Prachuap Khiri Khan",
+      "prachinburi": "Prachinburi",
+      "pattani": "Pattani",
+      "phra_nakhon_si_ayutthaya": "Phra Nakhon Si Ayutthaya",
+      "phayao": "Phayao",
+      "phang_nga": "Phang Nga",
+      "phatthalung": "Phatthalung",
+      "phichit": "Phichit",
+      "phitsanulok": "Phitsanulok",
+      "phetchaburi": "Phetchaburi",
+      "phetchabun": "Phetchabun",
+      "phrae": "Phrae",
+      "phuket": "Phuket",
+      "maha_sarakham": "Maha Sarakham",
+      "mukdahan": "Mukdahan",
+      "mae_hong_son": "Mae Hong Son",
+      "yasothon": "Yasothon",
+      "yala": "Yala",
+      "roi_et": "Roi Et",
+      "ranong": "Ranong",
+      "rayong": "Rayong",
+      "ratchaburi": "Ratchaburi",
+      "lopburi": "Lopburi",
+      "lampang": "Lampang",
+      "lamphun": "Lamphun",
+      "loei": "Loei",
+      "sisaket": "Sisaket",
+      "sakon_nakhon": "Sakon Nakhon",
+      "songkhla": "Songkhla",
+      "satun": "Satun",
+      "samut_prakan": "Samut Prakan",
+      "samut_songkhram": "Samut Songkhram",
+      "samut_sakhon": "Samut Sakhon",
+      "sa_kaeo": "Sa Kaeo",
+      "saraburi": "Saraburi",
+      "sing_buri": "Sing Buri",
+      "sukhothai": "Sukhothai",
+      "suphan_buri": "Suphan Buri",
+      "surat_thani": "Surat Thani",
+      "surin": "Surin",
+      "nong_khai": "Nong Khai",
+      "nong_bua_lam_phu": "Nong Bua Lam Phu",
+      "ang_thong": "Ang Thong",
+      "amnat_charoen": "Amnat Charoen",
+      "udon_thani": "Udon Thani",
+      "uttaradit": "Uttaradit",
+      "uthaithani": "Uthai Thani",
+      "ubon_ratchathani": "Ubon Ratchathani"
+    },
+    "search": "Search",
+    "clearFilter": "Clear Filter",
+    "jobType": "Job Type",
+    "selected": "Selected",
+    "salary": "Salary",
+    "education": "Education",
+    "category": "Job Category",
+    "jobTypes": {
+      "FULL_TIME": "Full Time",
+      "PART_TIME": "Part Time",
+      "CONTRACT": "Contract",
+      "INTERNSHIP": "Internship",
+      "FREELANCE": "Freelance"
+    },
+    "educationLevels": {
+      "lower_secondary": "Lower Secondary",
+      "secondary": "Secondary",
+      "vocational": "Vocational (Por Wor Chor / Por Wor Sor)",
+      "bachelor": "Bachelor's Degree",
+      "master": "Master's Degree",
+      "doctorate": "Doctorate"
+    },
+    "categories": {
+      "accounting": "Accounting",
+      "admin": "Administrative",
+      "banking": "Banking / Finance",
+      "community": "Community Development",
+      "construction": "Construction",
+      "design": "Design / Architecture",
+      "education": "Education",
+      "engineering": "Engineering",
+      "farming": "Farming / Agriculture / Conservation",
+      "government": "Government / Civil Service",
+      "medical": "Medical / Healthcare",
+      "service": "Service / Tourism",
+      "hr": "Human Resources",
+      "it": "IT / Telecommunication",
+      "insurance": "Insurance",
+      "legal": "Legal",
+      "manufacturing": "Manufacturing / Transportation",
+      "marketing": "Marketing / Communication",
+      "real_estate": "Real Estate",
+      "retail": "Retail / Consumer Goods",
+      "sales": "Sales",
+      "science": "Science",
+      "sports": "Sports / Recreation",
+      "food_beverage": "Food & Beverage",
+      "logistics": "Warehouse / Logistics",
+      "technician": "Technician / Maintenance",
+      "beauty_wellness": "Beauty / Spa / Wellness",
+      "purchasing": "Purchasing / Project Coordination",
+      "media_entertainment": "Media / Entertainment",
+      "writing_translation": "Writing / Proofreading / Translation",
+      "ecommerce": "E-Commerce / Digital",
+      "maid_security": "Housekeeping / Security",
+      "automotive": "Automotive Industry",
+      "energy_oil_gas": "Energy / Oil & Gas",
+      "fashion_garment": "Fashion / Garment",
+      "general_labor": "General Labor / Freelance"
+    }
+  },
+  "Footer": {
+    "description": "The job platform that fits you. Discover thousands of opportunities from top companies waiting for you.",
+    "findJobs": "Find Jobs",
+    "allJobs": "All Jobs",
+    "urgentJobs": "Urgent Jobs",
+    "searchResumes": "Find Candidates",
+    "regionalJobs": "Regional Jobs",
+    "forJobSeekers": "For Job Seekers",
+    "createResume": "Create Resume",
+    "savedJobs": "Saved Jobs",
+    "applications": "Application History",
+    "aiMatcher": "AI Job Matcher",
+    "support": "Help & Support",
+    "contact": "Contact Us",
+    "privacyPolicy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "faq": "FAQ",
+    "copyright": "© 2026 JobDD. All rights reserved.",
+    "cookiePolicy": "Cookie Policy"
+  },
+  "LoginBanner": {
+    "title": "Find the right job, in your own style",
+    "subtitle": "Log in to manage your profile and access jobs you're interested in.",
+    "googleLogin": "Login with Google",
+    "or": "or",
+    "login": "Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register"
+  },
+  "JobCategories": {
+    "storefront": "Storefront Jobs",
+    "office": "Office Jobs",
+    "viewAll": "View All Jobs",
+    "positions": "Positions",
+    "sales": "Sales",
+    "food": "Food",
+    "service": "Service / Tourism",
+    "retail": "Retail / Consumer Goods",
+    "marketing": "Marketing / Communication",
+    "tech": "IT / Telecommunication",
+    "accounting": "Accounting",
+    "admin": "Administrative"
+  },
+  "AISkillBanner": {
+    "title": "AI Skill Analysis to help you find the right job",
+    "subtitle": "Discover your strengths, hobbies, and unique identity with us.",
+    "cta": "Start AI Skill Analysis"
+  },
+  "TopCompanies": {
+    "title": "Top Companies Now Hiring",
+    "recommended": "Recommended"
+  },
+  "RecommendedJobs": {
+    "title": "Explore Our Open Positions",
+    "subtitle": "Discover new opportunities from top companies waiting for you to join.",
+    "viewAll": "View All Positions",
+    "noJobs": "No job postings at the moment",
+    "justPosted": "Just posted",
+    "minsAgo": "{count} mins ago",
+    "hrsAgo": "{count} hrs ago",
+    "daysAgo": "{count} days ago",
+    "location": "Location",
+    "salary": "Salary",
+    "positions": "Positions",
+    "vacancy": "{count} positions",
+    "salaryHidden": "Negotiable",
+    "currency": "THB",
+    "upTo": "Up to",
+    "jobTypes": {
+      "FULL_TIME": "Full Time",
+      "PART_TIME": "Part Time",
+      "CONTRACT": "Contract",
+      "INTERNSHIP": "Internship",
+      "FREELANCE": "Freelance"
+    }
+  },
+  "FAQ": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "A collection of questions and answers you might have about using JobDD so you can start searching for jobs with confidence.",
+    "stillHaveQuestions": "Still have questions?",
+    "contactUs": "Contact Us",
+    "questions": {
+      "q1": "What is JobDD?",
+      "a1": "JobDD is a job search platform designed to help you discover new career opportunities quickly and easily with an accurate and user-friendly job recommendation system.",
+      "q2": "Is registration free?",
+      "a2": "For job seekers, registration and use of our entire platform is 100% free with no hidden costs.",
+      "q3": "How do I start searching for jobs?",
+      "a3": "You can start by typing the job title you're interested in in the search box or choosing from the job categories we've collected. And don't forget to complete your profile to increase your chances of being discovered by top companies.",
+      "q4": "How will employers contact me if they're interested in my profile?",
+      "a4": "If you set your profile to public or have submitted a job application, companies will be able to contact you through the contact information you provided or through the messaging system in JobDD.",
+      "q5": "Will my personal information be safe?",
+      "a5": "We place the highest priority on the security of your personal information. Everything is kept secure and shared only with the companies you choose to apply to."
+    }
+  },
+  "CookieConsent": {
+    "title": "We use cookies 🍪",
+    "description": "JobDD uses cookies to present information that matches your interests and to improve your website experience. You can read more details at",
+    "policyLink": "Cookie Policy",
+    "decline": "Decline Cookies",
+    "accept": "Accept All"
+  },
+  "PopularSearch": {
+    "title": "Popular Search",
+    "terms": {
+      "manager": "High Salary Manager",
+      "it": "IT Salary 50K",
+      "ecommerce": "E-Commerce",
+      "data": "Data Analyst",
+      "digital": "Digital Marketing",
+      "accounting": "Accounting & Finance"
+    }
+  },
+  "comingSoon": {
+    "title": "Coming Soon!",
+    "description": "We are working hard to prepare this content for you. Stay tuned for updates!",
+    "backHome": "Back to Homepage"
+  },
+  "CandidateDirectory": {
+    "badge": "EMPLOYER RESUME DIRECTORY",
+    "title": "Find Candidates",
+    "description": "This page is designed for entrepreneurs and employers to quickly search for job seekers by province, gender, age range, skills, abilities, and education level.",
+    "jobSeekerBox": {
+      "title": "For Job Seekers",
+      "desc": "If you want to upload your resume or profile for employers to see, please go to your full profile page first.",
+      "ctaLoggedIn": "Go to My Profile",
+      "ctaGuest": "Login to Post Resume"
+    },
+    "employerBox": {
+      "title": "For Employers",
+      "desc": "If you are looking to hire, please log in to the employer portal and go to the job posting page to start immediately.",
+      "ctaLoggedIn": "Post a Job",
+      "ctaGuest": "Employer Login to Post"
+    },
+    "search": {
+      "placeholder": "Search by job title, skills, major, or province...",
+      "btnSearch": "Search",
+      "btnClear": "Clear Filters"
+    },
+    "filters": {
+      "title": "Candidate Filters",
+      "province": "Preferred Province",
+      "genderAll": "All Genders",
+      "gender": {
+        "male": "Male",
+        "female": "Female"
+      },
+      "ageMin": "Min Age",
+      "ageMax": "Max Age",
+      "skills": "Skills (e.g., Excel, Sales)",
+      "education": "Education Level",
+      "gpa": "Min GPA",
+      "institution": "Institution Name",
+      "englishAll": "All English Levels",
+      "english": {
+        "label": "All English Levels",
+        "basic": "Basic",
+        "fair": "Fair",
+        "good": "Good",
+        "excellent": "Excellent"
+      }
+    },
+    "list": {
+      "title": "Candidate List",
+      "resultCount": "Search Results",
+      "ageUnit": "yrs",
+      "noAge": "Age not specified",
+      "noGender": "Gender not specified",
+      "lookingFor": "Looking for",
+      "list": "",
+      "salary": "Expected Salary",
+      "education": "Education",
+      "major": "Major",
+      "province": "Preferred Province",
+      "english": "English",
+      "noSkills": "No skills specified",
+      "updated": "Updated",
+      "viewDetail": "View Details",
+      "emptyTitle": "No candidates found",
+      "emptyDesc": "Try adjusting your province, skills, age range, or education level and search again.",
+      "notSpecified": "Not Specified"
+    }
+  },
+  "all_group_job": {
+    "hero_title": "All Job Categories",
+    "hero_subtitle": "Find the right job from categories covering all professions and areas across Thailand",
+    "Allthai": "All over Thailand",
+    "region_badge_label": "Regional Jobs",
+    "regional_description": "All job announcements in {region}",
+    "jobs_found_in_region": "Found {count} positions in {region}",
+    "loading": "Loading...",
+    "view_all_jobs": "View All Jobs",
+    "back_to_categories": "Back to Categories",
+    "filters_label": "Filters",
+    "jobs_found_count": "Found {count} positions in {region}",
+    "filtering_province": "Filtering by: {province}",
+    "clear_filters": "Clear Filters",
+    "no_jobs_found": "No jobs found in {region}",
+    "try_changing_filters": "Try changing your search keywords or clear filters",
+    "view_all_in_region": "View all in this region",
+    "pagination_prev": "← Previous",
+    "pagination_next": "Next →",
+    "stats": {
+      "main_groups": "Main Groups",
+      "sub_categories": "Sub Categories",
+      "total_jobs": "Total Jobs",
+      "all_areas": "All Areas Covered"
+    },
+    "buttons": {
+      "back_home": "Home",
+      "view_all_jobs": "View All Jobs"
+    },
+    "groups": {
+      "position": "positions",
+      "storefront": {
+        "title": "Front-of-House & Retail",
+        "title_href": "Front-of-House & Retail",
+        "subtitle": "Service, Sales, and Branch Operations",
+        "items": {
+          "sales": "Sales",
+          "food": "Food & Beverage",
+          "service": "Customer Service",
+          "retail": "Retail & Department Store",
+          "hotel": "Tourism & Hospitality"
+        }
+      },
+      "office": {
+        "title": "Office & Professional",
+        "subtitle": "Corporate, Specialized Professions, and Management",
+        "items": {
+          "marketing": "Marketing & E-commerce",
+          "tech": "IT, Tech & UX/UI Design",
+          "accounting": "Accounting, Banking & Insurance",
+          "factory": "Industrial, Logistics & Technician",
+          "admin": "Admin, Secretary & Interpretation",
+          "hr": "HR, Legal & Consulting",
+          "engineer": "Engineering & Architecture",
+          "freelance": "Freelance & Part-time",
+          "executive": "Executive & Management",
+          "medical": "Medical, Health & Beauty",
+          "education": "Education & Government",
+          "entertainment": "Entertainment & Media"
+        }
+      },
+      "regional": {
+        "title": "Jobs by Location",
+        "subtitle": "Search for jobs across all regions of Thailand",
+        "items": {
+          "bangkok": "Bangkok & Vicinity",
+          "central": "Central Thailand",
+          "west": "Western Thailand",
+          "east": "Eastern Thailand",
+          "northeast": "Northeastern",
+          "north": "Northern Thailand",
+          "south": "Southern Thailand"
+        }
+      }
+    }
+  },
+  "AIjobmatch": {
+    "aimatch": "JOBSABUY AI MATCHING",
+    "aimatcher": "Let our AI system match you with the perfect job based on your skills, experience, and resume to find the right opportunities faster.",
+    "useprofiledata": "Use data from your profile",
+    "fastanalyze": "Faster analysis",
+    "initial_skills": "Core Skills",
+    "extracted_from_info": "Extracted from languages, certificates, and work experience",
+    "education": "Education",
+    "profile_prep_info": "Used to build your profile",
+    "resume_analyzed": "Resume with AI Analysis",
+    "upload_pdf": "Upload a PDF to let AI extract additional information.",
+    "status_ready": "Ready",
+    "status_missing": "Not Uploaded",
+    "ai_matcher_description": "Unbiased analysis of job matches based on your skills and experience.",
+    "ai_analysis_title": "AI Skill Analysis",
+    "upload_pdf_analyze": "Upload PDF to Analyze",
+    "analyzing": "Analyzing...",
+    "no_resume": "* No resume uploaded yet",
+    "input_skills_label": "Your Hard Skills",
+    "salary_label": "Expected Salary (THB/Month)",
+    "error_add_skill": "Please add at least 1 skill.",
+    "error_fetch_jobs": "Unable to fetch job data.",
+    "error_generic": "An error occurred. Please try again.",
+    "score_high": "Excellent Match",
+    "score_medium": "Good Match",
+    "score_fair": "Fair Match",
+    "score_low": "Low Match",
+    "parse_success_msg": "Resume parsed successfully! Found {{skillCount}} skills{{position}}{{experience}}",
+    "no_resume_hint": "* No resume uploaded yet — Please upload a PDF above to start analysis.",
+    "rule_hard_skills": "Hard Skills weight",
+    "rule_experience_weight": "Experience weight",
+    "rule_your_experience": "Your Experience",
+    "rule_from_resume": "(from resume)",
+    "unit_years": "years"
+  },
+  "jobcreate": {
+    "header": "Create Job Posting",
+    "verificationAlert": {
+      "title": "Verify company identity to publish job postings",
+      "description": "You can create a draft first, but you will not be able to <bold>\"Save and Publish Immediately\"</bold> until your company verification has been approved."
+    },
+    "basicInfo": {
+      "title": "Basic Information",
+      "jobTitle": "Job Title",
+      "jobType": "Job Type",
+      "workModel": "Work Model",
+      "positions": "Number of Vacancies (Positions)",
+      "province": "Location (Province)",
+      "district": "District / Area",
+      "category": "Job Category",
+      "jobFunction": "Job Function",
+      "workingDays": "Working Days and Hours",
+      "support": "Support",
+      "notsuppot": "Not support",
+      "workingDaysOptions": {
+        "fiveDays": "5 Days/Week",
+        "sixDays": "6 Days/Week",
+        "custom": "Specified by company"
+      },
+      "onlineInterview": "Support Online Interview",
+      "quickApply": {
+        "label": "Quick Apply",
+        "description": "Enable to show \"Quick Apply\" badge to attract candidates faster.",
+        "off": "Off",
+        "on": "On — Show Quick Apply badge"
+      },
+      "contactAddress": "Company Contact Info (Address)",
+      "mapUrl": "Map Link (Google Maps URL)",
+      "companyImages": {
+        "title": "Workplace Atmosphere Images",
+        "pic": "pics",
+        "addBtn": "Add Image",
+        "watch": "inspect",
+        "hint": "Supports JPG, PNG, WEBP — Max 5MB per image"
+      }
+    },
+    "salary": {
+      "title": "Salary",
+      "min": "Minimum Salary (THB)",
+      "max": "Maximum Salary (THB)",
+      "visible": "Show salary in job posting"
+    },
+    "jobDetails": {
+      "title": "Job Details",
+      "description": "Job Description",
+      "requirements": "Qualifications",
+      "editor": {
+        "normal": "Normal Text",
+        "h1": "Heading 1",
+        "h2": "Heading 2",
+        "h3": "Heading 3"
+      }
+    },
+    "benefits": {
+      "title": "Benefits & Compensation",
+      "items": {
+        "social_security": "Social Security",
+        "bonus": "Bonus",
+        "ot": "Overtime Pay",
+        "commission": "Commission",
+        "provident_fund": "Provident Fund",
+        "housing": "Accommodation",
+        "transport": "Travel Allowance",
+        "food": "Meal Allowance",
+        "uniform": "Uniform"
+      },
+      "other": "Other Benefits"
+    },
+    "skills": {
+      "title": "Required Skills (Add keywords for AI candidate screening)",
+      "addBtn": "Add",
+      "noSkills": "No skills added — please add at least 1 item"
+    },
+    "qualifications": {
+      "title": "Qualifications",
+      "gender": "Gender",
+      "education": "Education Level (Minimum)",
+      "age": "Age (Years)",
+      "experience": "Experience (Years)",
+      "additional": {
+        "title": "Additional Qualifications",
+        "recent_grad": "Welcome recent graduates",
+        "no_exp": "No experience required",
+        "driving_license": "Driving license required",
+        "travel": "Can travel upcountry",
+        "shift": "Shift work available",
+        "addBtn": "Add"
+      }
+    },
+    "contact": {
+      "title": "To apply for this position, please contact",
+      "name": "Contact Person",
+      "phone": "Contact Phone"
+    },
+    "transportation": {
+      "title": "Transportation",
+      "placeholder": "Select type (or type your own)",
+      "addBtn": "Add"
+    },
+    "footerActions": {
+      "saveDraft": "Save as Draft",
+      "publish": "Publish Job Posting"
+    }
+  }
+}

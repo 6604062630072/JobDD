@@ -1,0 +1,21 @@
+{
+  "table": "educations",
+  "exportedAt": "2026-03-08T07:27:12.825Z",
+  "rowCount": 1,
+  "rows": [
+    {
+      "id": "f952c550-d6fa-4293-8be5-f28cd8feddf5",
+      "userId": "1c961779-0a0e-482c-9bc0-23235ae2d970",
+      "institution": "จุฬาลงกรณ์มหาวิทยาลัย",
+      "faculty": "สาขาวิชาวิศวกรรมคอมพิวเตอร์",
+      "major": "สาขาวิชาวิศวกรรมคอมพิวเตอร์",
+      "educationLevel": "ปริญญาตรี",
+      "degreeName": "หลักสูตรวิศวกรรมศาสตรบัณฑิต",
+      "graduationYear": 2568,
+      "gpa": 4,
+      "hasHonors": 0,
+      "createdAt": "2026-03-07 05:39:53.557",
+      "updatedAt": "2026-03-07 05:39:53.557"
+    }
+  ]
+}
