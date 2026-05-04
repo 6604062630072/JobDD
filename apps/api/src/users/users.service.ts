@@ -29,12 +29,25 @@ export class UsersService {
                 phone: true,
                 avatarUrl: true,
                 profile: true,
+                drivingSkills: true,
+                workHistories: {
+                    select: {
+                        id: true,
+                        company: true,
+                        businessType: true,
+                        position: true,
+                        jobType: true,
+                        startYear: true,
+                        endYear: true,
+                        isCurrent: true,
+                    },
+                    orderBy: { createdAt: 'desc' }
+                },
             },
         });
 
         if (!user) return null;
 
-        // Flatten profile into user object to match frontend expectations
         const { profile, ...userData } = user;
         return {
             ...userData,
@@ -44,7 +57,6 @@ export class UsersService {
     }
 
     async upsertProfile(userId: string, dto: UpdateProfileDto) {
-        // Verify user exists first to prevent FK constraint error
         const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
         if (!userExists) {
             throw new NotFoundException('ไม่พบผู้ใช้ กรุณาออกจากระบบแล้วเข้าสู่ระบบใหม่');
@@ -62,6 +74,9 @@ export class UsersService {
             district: dto.district,
             subDistrict: dto.subDistrict,
             postalCode: dto.postalCode,
+            experience: dto.experience !== undefined ? Number(dto.experience) : undefined,
+            religion: dto.religion,
+            expectedSalary: dto.expectedSalary !== undefined ? Number(dto.expectedSalary) : undefined,
         };
 
         if (dto.isPublic !== undefined) {
@@ -87,6 +102,46 @@ export class UsersService {
     }
 
     // ===================================
+    // Desired Provinces (สถานที่ที่ต้องการทำงาน)
+    // ===================================
+    async getDesiredProvinces(userId: string) {
+        return this.prisma.desiredProvince.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'asc' },
+        });
+    }
+
+    async upsertDesiredProvinces(userId: string, provinces: string[]) {
+        try {
+            const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (!userExists) throw new NotFoundException('ไม่พบผู้ใช้ กรุณา Login ใหม่');
+
+            // ลบของเก่าทั้งหมด (ท่ายอดนิยมสำหรับ Array/Multiple Select)
+            await this.prisma.desiredProvince.deleteMany({ where: { userId } });
+
+            if (!provinces || provinces.length === 0) return [];
+
+            // กรองค่าว่างและบันทึกใหม่
+            const validProvinces = provinces.filter(p => p && p.trim() !== '');
+
+            const created = await Promise.all(
+                validProvinces.map((provinceName) =>
+                    this.prisma.desiredProvince.create({
+                        data: {
+                            userId,
+                            provinceName,
+                        },
+                    }),
+                ),
+            );
+            return created;
+        } catch (error) {
+            console.error('Service: upsertDesiredProvinces Error', error);
+            throw error;
+        }
+    }
+
+    // ===================================
     // Education
     // ===================================
     async getEducations(userId: string) {
@@ -109,23 +164,19 @@ export class UsersService {
 
             if (!dto.items || !Array.isArray(dto.items)) {
                 console.warn('Service: Items is not an array or undefined', dto.items);
-                // Return empty or throw bad request? Let's just return empty for now to avoid 500
                 return [];
             }
 
-            // Replace all: delete existing then create new
             await this.prisma.education.deleteMany({ where: { userId } });
 
             if (dto.items.length === 0) return [];
 
-            // Filter out items without institution name
             const validItems = dto.items.filter(item => item.institution && item.institution.trim() !== '');
 
             if (validItems.length === 0) return [];
 
             const created = await Promise.all(
                 validItems.map((item) => {
-                    // Sanitize numeric fields to prevent NaN/invalid values reaching Prisma
                     const graduationYear = (item.graduationYear != null && !isNaN(Number(item.graduationYear)))
                         ? Math.round(Number(item.graduationYear))
                         : null;
@@ -175,7 +226,6 @@ export class UsersService {
 
             if (!dto.items || !Array.isArray(dto.items)) return [];
 
-            // Filter
             const validItems = dto.items.filter(item => item.company && item.company.trim() !== '');
 
             await this.prisma.workHistory.deleteMany({ where: { userId } });
@@ -274,6 +324,43 @@ export class UsersService {
     }
 
     // ===================================
+    // Driving Skills
+    // ===================================
+    async getDrivingSkills(userId: string) {
+        return this.prisma.drivingSkill.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'asc' },
+        });
+    }
+
+    async upsertDrivingSkills(userId: string, skills: string[]) {
+        try {
+            const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
+            if (!userExists) throw new NotFoundException('ไม่พบผู้ใช้ กรุณา Login ใหม่');
+
+            await this.prisma.drivingSkill.deleteMany({ where: { userId } });
+
+            if (!skills || skills.length === 0) return [];
+
+            const created = await Promise.all(
+                skills.map((skillType) =>
+                    this.prisma.drivingSkill.create({
+                        data: {
+                            userId,
+                            skillType,
+                            category: 'DRIVING',
+                        },
+                    }),
+                ),
+            );
+            return created;
+        } catch (error) {
+            console.error('Service: upsertDrivingSkills Error', error);
+            throw error;
+        }
+    }
+
+    // ===================================
     // Certificates
     // ===================================
     async getCertificates(userId: string) {
@@ -364,12 +451,11 @@ export class UsersService {
         });
     }
 
-    async upsertJobPreferences(userId: string, items: { position: string }[]) {
+    async upsertJobPreferences(userId: string, items: { position: string, jobType?: string }[]) {
         try {
             const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
             if (!userExists) throw new NotFoundException('ไม่พบผู้ใช้ กรุณา Login ใหม่');
 
-            // Filter
             const validItems = items.filter(item => item.position && item.position.trim() !== '');
 
             await this.prisma.jobPreference.deleteMany({ where: { userId } });
@@ -382,6 +468,7 @@ export class UsersService {
                         data: {
                             userId,
                             position: item.position,
+                            jobType: item.jobType,
                             order: index,
                         },
                     }),
@@ -408,9 +495,15 @@ export class UsersService {
         educationLevel?: string;
         minGpa?: string;
         institution?: string;
+        language?: string;
+        languageLevel?: string;
         englishLevel?: string;
         businessType?: string;
         currentUserId?: string;
+        desiredProvinces?: string,
+        faculty?: string;
+        major?: string;
+        jobType?: string;
     }) {
         const { currentUserId, ...otherFilters } = filters;
         const users = await this.prisma.user.findMany({
@@ -430,6 +523,7 @@ export class UsersService {
                 createdAt: true,
                 updatedAt: true,
                 profile: true,
+                desiredProvinces: true,
                 resumes: {
                     orderBy: { createdAt: 'desc' },
                     take: 1,
@@ -449,6 +543,7 @@ export class UsersService {
                 jobPreferences: {
                     orderBy: { order: 'asc' },
                 },
+                drivingSkills: true,
                 bookmarks: currentUserId ? {
                     where: {
                         employerId: currentUserId
@@ -491,6 +586,7 @@ export class UsersService {
                 createdAt: true,
                 updatedAt: true,
                 profile: true,
+                desiredProvinces: true,
                 resumes: {
                     orderBy: { createdAt: 'desc' },
                     take: 1,
@@ -510,6 +606,7 @@ export class UsersService {
                 jobPreferences: {
                     orderBy: { order: 'asc' },
                 },
+                drivingSkills: true,
             },
         });
 
@@ -566,13 +663,24 @@ export class UsersService {
         const age = this.calculateAge(user.profile?.birthDate);
         const english = this.getEnglishLevelSummary(user.languages || [], user.languageTests || []);
         const allBusinessTypes = (user.workHistories || []).map((w: any) => w.businessType).filter(Boolean);
+        const drivingSkills = (user.drivingSkills || []).map((s: any) => s.skillType);
+        const desiredProvinces = (user.desiredProvinces || []).map((p: any) => p.provinceName);
 
         const preferences = user.jobPreferences || [];
+        const preferredJobTypes = preferences.map((p: any) => p.jobType).filter(Boolean);
         const desiredPosition = preferences.length > 0
             ? preferences.map((p: any) => p.position).join(', ')
             : (latestWork?.position || primaryResume?.title || 'ผู้หางาน');
 
-        const expectedSalaryText = this.extractExpectedSalaryText(primaryResume?.summary);
+        const profileSalary = user.profile?.expectedSalary
+            ? `${Number(user.profile.expectedSalary).toLocaleString()} บาท`
+            : null;
+
+        const resumeSalary = !profileSalary
+            ? this.tryExtractSalaryFromText(primaryResume?.summary)
+            : null;
+        const expectedSalaryText = profileSalary || resumeSalary || 'ไม่ระบุ';
+
         const fullName = `${user.firstName} ${user.lastName}`.trim();
 
         return {
@@ -581,19 +689,33 @@ export class UsersService {
             gender: user.profile?.gender || 'ไม่ระบุ',
             age,
             desiredPosition,
+            experience: user.profile?.experience ?? 0,
             expectedSalaryText,
             educationLevel: highestEducation?.educationLevel || highestEducation?.degreeName || 'ไม่ระบุ',
             major: highestEducation?.major || highestEducation?.faculty || 'ไม่ระบุ',
             province: user.profile?.province || 'ไม่ระบุ',
+            district: user.profile?.district || '',
+            subDistrict: user.profile?.subDistrict || '',
+            postalCode: user.profile?.postalCode || '',
             postedAt: (primaryResume?.createdAt || user.updatedAt || user.createdAt).toISOString(),
             skills,
             institution: highestEducation?.institution || 'ไม่ระบุ',
+            educationHistory: (user.educations || []).map((edu: any) => ({
+                faculty: edu.faculty || '',
+                major: edu.major || ''
+            })),
             gpa: highestEducation?.gpa ?? null,
             englishLevelLabel: english.label,
             englishLevelScore: english.score,
+            languages: user.languages || [],
             candidateType: 'ผู้หางาน',
             avatarUrl: user.avatarUrl || null,
             businessTypes: allBusinessTypes,
+            drivingSkills,
+            desiredProvinces,
+            religion: user.profile?.religion || '-',
+            expectedSalary: user.profile?.expectedSalary || null,
+            jobTypes: preferredJobTypes,
         };
     }
 
@@ -604,8 +726,13 @@ export class UsersService {
         return {
             ...summary,
             nationality: user.profile?.nationality || 'ไม่ระบุ',
-            religion: '-',
+            religion: user.profile?.religion || '-',
             workProvince: user.profile?.province || 'ไม่ระบุ',
+            workDistrict: user.profile?.district || '',
+            workSubDistrict: user.profile?.subDistrict || '',
+            workpostalCode: user.profile?.postalCode || '',
+            languages: user.languages || [],
+            languageTests: user.languageTests || [],
             educationHistory: (user.educations || []).map((education: any) => ({
                 id: education.id,
                 educationLevel: education.educationLevel || '-',
@@ -631,12 +758,12 @@ export class UsersService {
             englishStars: english.stars,
             englishDetails: english.details,
             resumeFileUrl: user.resumes?.[0]?.fileUrl || null,
+            drivingSkills: (user.drivingSkills || []).map((s: any) => s.skillType),
         };
     }
 
 
     private matchesCandidateFilters(candidate: any, filters: {
-
         query?: string;
         province?: string;
         gender?: string;
@@ -646,20 +773,44 @@ export class UsersService {
         educationLevel?: string;
         minGpa?: string;
         institution?: string;
+        language?: string;
+        languageLevel?: string;
         englishLevel?: string;
         businessType?: string;
+        faculty?: string;
+        major?: string;
+        jobType?: string;
     }) {
+        const langMap: Record<string, string[]> = {
+            'japanese': ['japanese', 'ญี่ปุ่น', 'n1', 'n2', 'n3', 'n4', 'n5'],
+            'chinese': ['chinese', 'จีน', 'hsk', 'แมนดาริน', 'mandarin'],
+            'english': ['english', 'อังกฤษ', 'toeic', 'ielts'],
+            'korean': ['korean', 'เกาหลี', 'topik'],
+            'ภาษาญี่ปุ่น': ['japanese', 'ญี่ปุ่น', 'n1', 'n2', 'n3', 'n4', 'n5'],
+            'ภาษาจีน': ['chinese', 'จีน', 'hsk', 'แมนดาริน', 'mandarin'],
+            'ภาษาอังกฤษ': ['english', 'อังกฤษ', 'toeic', 'ielts'],
+            'ภาษาเกาหลี': ['korean', 'เกาหลี', 'topik']
+        };
+
         const query = this.normalizeText(filters.query);
         const province = this.normalizeText(filters.province);
         const gender = this.normalizeText(filters.gender);
         const educationLevel = this.normalizeText(filters.educationLevel);
         const institution = this.normalizeText(filters.institution);
-        const englishLevel = this.normalizeText(filters.englishLevel);
         const businessType = this.normalizeText(filters.businessType);
+        const englishLevelFilter = this.normalizeText(filters.englishLevel);
+        const facultyFilter = this.normalizeText(filters.faculty); // เพิ่มการ Normalize
+        const majorFilter = this.normalizeText(filters.major);
+        const jobTypeFilter = this.normalizeText(filters.jobType);
+
+        const rawLangFilter = filters.language || "";
+        const rawLevelFilter = filters.languageLevel || "";
+
         const workBusinessTypes = (candidate.businessTypes || []).join(' ');
         const ageMin = Number(filters.ageMin);
         const ageMax = Number(filters.ageMax);
         const minGpa = Number(filters.minGpa);
+
         const skillKeywords = (filters.skills || '')
             .split(',')
             .map((item) => this.normalizeText(item))
@@ -677,13 +828,25 @@ export class UsersService {
         ].join(' '));
 
         if (query && !searchableText.includes(query)) return false;
+
+
         if (businessType) {
             const hasMatchingBusiness = (candidate.workHistory || []).some((work: any) =>
                 this.normalizeText(work.businessType).includes(businessType)
             );
             if (!hasMatchingBusiness) return false;
         }
+
         if (province && !this.normalizeText(candidate.province).includes(province)) return false;
+        if (province) {
+            const currentProvince = this.normalizeText(candidate.province || '');
+            const desiredProvinces = (candidate.desiredProvinces || []).map((p: string) => this.normalizeText(p));
+
+            const isCurrentMatch = currentProvince.includes(province);
+            const isDesiredMatch = desiredProvinces.some((p: string) => p.includes(province));
+
+            if (!isCurrentMatch && !isDesiredMatch) return false;
+        }
         if (gender && !this.normalizeText(candidate.gender).includes(gender)) return false;
         if (!Number.isNaN(ageMin) && ageMin > 0 && (candidate.age == null || candidate.age < ageMin)) return false;
         if (!Number.isNaN(ageMax) && ageMax > 0 && (candidate.age == null || candidate.age > ageMax)) return false;
@@ -698,9 +861,57 @@ export class UsersService {
         if (!Number.isNaN(minGpa) && minGpa > 0 && (candidate.gpa == null || Number(candidate.gpa) < minGpa)) return false;
         if (institution && !this.normalizeText(candidate.institution).includes(institution)) return false;
 
-        if (englishLevel) {
-            const requiredScore = this.mapEnglishLevelFilterToScore(englishLevel);
-            if (candidate.englishLevelScore < requiredScore) return false;
+        if (rawLangFilter) {
+            const terms = langMap[rawLangFilter.toLowerCase()] || [rawLangFilter.toLowerCase()];
+            const cleanTerms = terms.map(t => t.toLowerCase().trim());
+
+            const hasInLangObject = (candidate.languages || []).some((l: any) => {
+                const name = (l.language || '').toLowerCase();
+                return cleanTerms.some(term => name.includes(term));
+            });
+
+            if (!hasInLangObject) return false;
+        }
+
+        if (rawLevelFilter) {
+            const filterLvl = rawLevelFilter.trim().toLowerCase();
+            const hasLevelMatch = (candidate.languages || []).some((l: any) => {
+                const dbLevel = (l.level || '').toLowerCase();
+                const dbLang = (l.language || '').toLowerCase();
+                if (rawLangFilter) {
+                    const terms = langMap[rawLangFilter.toLowerCase()] || [rawLangFilter.toLowerCase()];
+                    if (!terms.some(term => dbLang.includes(term.toLowerCase()))) return false;
+                }
+                return dbLevel.includes(filterLvl);
+            });
+            if (!hasLevelMatch) return false;
+        }
+
+        if (englishLevelFilter) {
+            const requiredScore = this.mapEnglishLevelFilterToScore(filters.englishLevel || "");
+            if ((candidate.englishLevelScore || 0) < requiredScore) return false;
+        }
+
+        if (facultyFilter) {
+            const hasMatchingFaculty = (candidate.educationHistory || []).some((edu: any) =>
+                this.normalizeText(edu.faculty).includes(facultyFilter)
+            );
+            if (!hasMatchingFaculty) return false;
+        }
+
+        if (majorFilter) {
+            const hasMatchingMajor = (candidate.educationHistory || []).some((edu: any) =>
+                this.normalizeText(edu.major).includes(majorFilter)
+            );
+            if (!hasMatchingMajor) return false;
+        }
+
+        if (jobTypeFilter) {
+            const hasMatchingJobType = (candidate.jobTypes || []).some((jt: string) =>
+                this.normalizeText(jt).includes(jobTypeFilter)
+            );
+
+            if (!hasMatchingJobType) return false;
         }
 
         return true;
@@ -755,22 +966,6 @@ export class UsersService {
         const educationSkills = (user.educations || []).flatMap((education: any) => [education.major, education.faculty]).filter(Boolean);
 
         return Array.from(new Set([...resumeSkills, ...workSkills, ...languageSkills, ...educationSkills])).slice(0, 12);
-    }
-
-    private extractExpectedSalaryText(summary?: string | null) {
-        if (!summary) return 'ไม่ระบุ';
-
-        const rangeMatch = summary.match(/(\d{4,6})\s*[-–]\s*(\d{4,6})/);
-        if (rangeMatch) {
-            return `${Number(rangeMatch[1]).toLocaleString()}-${Number(rangeMatch[2]).toLocaleString()} บาท`;
-        }
-
-        const singleMatch = summary.match(/(\d{4,6})/);
-        if (singleMatch) {
-            return `${Number(singleMatch[1]).toLocaleString()} บาท`;
-        }
-
-        return 'ไม่ระบุ';
     }
 
     private getEnglishLevelSummary(languages: any[], tests: any[]) {
@@ -838,5 +1033,13 @@ export class UsersService {
         return this.prisma.user.findUnique({
             where: { email },
         });
+    }
+    private tryExtractSalaryFromText(summary?: string | null): string | null {
+        if (!summary) return null;
+        const rangeMatch = summary.match(/(\d{4,6})\s*[-–]\s*(\d{4,6})/);
+        if (rangeMatch) return `${Number(rangeMatch[1]).toLocaleString()}-${Number(rangeMatch[2]).toLocaleString()} บาท`;
+        const singleMatch = summary.match(/(\d{4,6})/);
+        if (singleMatch) return `${Number(singleMatch[1]).toLocaleString()} บาท`;
+        return null;
     }
 }

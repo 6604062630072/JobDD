@@ -15,6 +15,8 @@ import {
   Trash2,
   Loader2,
   Check,
+  Car,
+  PlusCircle,
 } from 'lucide-react';
 import { THAI_UNIVERSITIES as UNIVERSITIES } from '@/data/thai-universities';
 
@@ -25,17 +27,73 @@ const profileSteps = [
   { icon: GraduationCap, label: 'ประวัติการศึกษา', completed: false, active: true },
   { icon: Briefcase, label: 'ประวัติการทำงาน', completed: false, active: false },
   { icon: Languages, label: 'ความสามารถทางภาษา', completed: false, active: false },
+  { icon: Car, label: 'ทักษะการขับขี่', completed: false, active: false },
   { icon: Award, label: 'ใบประกาศนียบัตร', completed: false, active: false },
 ];
 
 // Thai Education Levels
 const EDUCATION_LEVELS = [
+  'ต่ำกว่ามัธยมศึกษาตอนปลาย',
   'มัธยมศึกษาตอนปลาย',
   'ปวช.',
   'ปวส.',
   'ปริญญาตรี',
   'ปริญญาโท',
   'ปริญญาเอก',
+];
+
+// รายชื่อคณะมาตรฐานในไทย
+const FACULTIES = [
+  "คณะเกษตรศาสตร์",
+  "คณะครุศาสตร์",
+  "คณะครุศาสตร์อุตสาหกรรม",
+  "คณะดุริยางคศิลป์",
+  "คณะทันตแพทยศาสตร์",
+  "คณะเทคนิคการแพทย์",
+  "คณะเทคโนโลยี",
+  "คณะเทคโนโลยีทางทะเล",
+  "คณะเทคโนโลยีสารสนเทศ",
+  "คณะนิติศาสตร์",
+  "คณะนิเทศศาสตร์",
+  "คณะบริหารธุรกิจ",
+  "คณะโบราณคดี",
+  "คณะประมง",
+  "คณะพยาบาลศาสตร์",
+  "คณะพาณิชยศาสตร์และการบัญชี",
+  "คณะแพทยศาสตร์",
+  "คณะเภสัชศาสตร์",
+  "คณะโภชนศาสตร์",
+  "คณะมนุษยศาสตร์",
+  "คณะมัณฑนศิลป์",
+  "คณะวนศาสตร์",
+  "คณะวารสารศาสตร์และสื่อสารมวลชน",
+  "คณะวิจิตรศิลป์",
+  "คณะวิทยาการจัดการ",
+  "คณะวิทยาการสารสนเทศ",
+  "คณะวิทยาศาสตร์",
+  "คณะวิทยาศาสตร์การกีฬา",
+  "คณะวิศวกรรมศาสตร์",
+  "คณะศิลปกรรมศาสตร์",
+  "คณะศิลปศาสตร์",
+  "คณะศิลปะและการออกแบบ",
+  "คณะเศรษฐศาสตร์",
+  "คณะสถาปัตยกรรมศาสตร์",
+  "คณะสหเวชศาสตร์",
+  "คณะสัตวแพทยศาสตร์",
+  "คณะสังคมสงเคราะห์ศาสตร์",
+  "คณะสังคมศาสตร์",
+  "คณะสาธารณสุขศาสตร์",
+  "คณะศึกษาศาสตร์",
+  "คณะสิ่งแวดล้อมและทรัพยากรศาสตร์",
+  "คณะอุตสาหกรรมเกษตร",
+  "คณะอุตสาหกรรมสร้างสรรค์",
+  "คณะอักษรศาสตร์",
+  "วิทยาลัยการคอมพิวเตอร์",
+  "วิทยาลัยการภาพยนตร์ ศิลปะการแสดงและสื่อใหม่",
+  "วิทยาลัยนานาชาติ",
+  "วิทยาลัยนวัตกรรม",
+  "วิทยาลัยป๊อปพิวเลชันศาสตร์",
+  "วิทยาลัยสื่อสารการเมือง"
 ];
 
 const currentYear = new Date().getFullYear() + 543;
@@ -107,7 +165,8 @@ export default function EducationPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const completionPercent = 40;
+
+  const [completionPercent, setCompletionPercent] = useState(17);
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (completionPercent / 100) * circumference;
 
@@ -122,6 +181,7 @@ export default function EducationPage() {
     if (!user) return;
     const token = localStorage.getItem('accessToken');
     if (!token) return;
+    setCompletionPercent(17);
     fetch(`${API_URL}/users/me/educations`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -143,7 +203,7 @@ export default function EducationPage() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [user]);
 
   const updateEntry = (id: string, field: keyof EducationEntry, value: string | boolean) => {
@@ -153,6 +213,10 @@ export default function EducationPage() {
   const removeEntry = (id: string) => {
     if (entries.length === 1) return;
     setEntries((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const addEntry = () => {
+    setEntries((prev) => [...prev, createEntry()]);
   };
 
   const handleSubmit = async () => {
@@ -182,7 +246,6 @@ export default function EducationPage() {
         }),
       });
       if (!res.ok) {
-        // If user not found (token stale), clear and redirect to login
         if (res.status === 401 || res.status === 404) {
           localStorage.removeItem('accessToken');
           router.push('/login');
@@ -193,6 +256,7 @@ export default function EducationPage() {
       }
       setSaving(false);
       setMessage({ type: 'success', text: 'บันทึกประวัติการศึกษาเรียบร้อยแล้ว ✓' });
+      setCompletionPercent(34);
       setTimeout(() => router.push('/profile/work-history'), 1000);
     } catch (error: unknown) {
       setSaving(false);
@@ -294,28 +358,26 @@ export default function EducationPage() {
 
               {/* Steps */}
               <div className="flex-1 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 sm:gap-2">
                   {profileSteps.map((step, index) => {
                     const Icon = step.icon;
                     return (
                       <button
                         key={index}
                         className={`group relative flex sm:flex-col items-center gap-3 sm:gap-2.5 p-3 sm:p-4 rounded-xl transition-all duration-300 cursor-pointer
-                          ${
-                            step.active
-                              ? 'bg-white/15 border border-white/20 shadow-lg shadow-blue-500/10'
-                              : 'hover:bg-white/6 border border-transparent'
+                          ${step.active
+                            ? 'bg-white/15 border border-white/20 shadow-lg shadow-blue-500/10'
+                            : 'hover:bg-white/6 border border-transparent'
                           }`}
                       >
                         <div
                           className={`relative shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all duration-300
-                          ${
-                            step.completed
+                          ${step.completed
                               ? 'bg-linear-to-br from-blue-400 to-cyan-400 shadow-md shadow-cyan-400/20'
                               : step.active
                                 ? 'bg-white/15 border border-white/20'
                                 : 'bg-white/6 border border-white/10'
-                          }`}
+                            }`}
                         >
                           {step.completed ? (
                             <Check className="w-5 h-5 text-white" strokeWidth={2.5} />
@@ -400,12 +462,12 @@ export default function EducationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">คณะ</label>
-                <input
-                  type="text"
+                {/* แก้ไขจาก input เป็น SearchableSelect */}
+                <SearchableSelect
+                  placeholder="เลือกหรือพิมพ์ชื่อคณะ"
                   value={entry.faculty}
-                  onChange={(e) => updateEntry(entry.id, 'faculty', e.target.value)}
-                  placeholder="โปรดระบุ"
-                  className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                  onChange={(val) => updateEntry(entry.id, 'faculty', val)}
+                  options={FACULTIES.map((f) => ({ value: f, label: f }))}
                 />
               </div>
               <div>
@@ -414,7 +476,7 @@ export default function EducationPage() {
                   type="text"
                   value={entry.major}
                   onChange={(e) => updateEntry(entry.id, 'major', e.target.value)}
-                  placeholder="โปรดระบุ"
+                  placeholder="เช่น วิศวกรรมคอมพิวเตอร์"
                   className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
                 />
               </div>
@@ -468,31 +530,6 @@ export default function EducationPage() {
               </div>
             </div>
 
-            {/* Row 4: Graduation Year & GPA */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  ปีที่สำเร็จการศึกษา
-                </label>
-                <SearchableSelect
-                  placeholder="โปรดเลือก"
-                  value={entry.graduationYear}
-                  onChange={(val) => updateEntry(entry.id, 'graduationYear', val)}
-                  options={graduationYears.map((y) => ({ value: y, label: y }))}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">เกรดเฉลี่ย</label>
-                <input
-                  type="text"
-                  value={entry.gpa}
-                  onChange={(e) => updateEntry(entry.id, 'gpa', e.target.value)}
-                  placeholder="ระบุ"
-                  className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
-                />
-              </div>
-            </div>
-
             {/* Row 5: Honors toggle */}
             <div className="flex items-center gap-3">
               <button
@@ -500,14 +537,12 @@ export default function EducationPage() {
                 role="switch"
                 aria-checked={entry.hasHonors}
                 onClick={() => updateEntry(entry.id, 'hasHonors', !entry.hasHonors)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  entry.hasHonors ? 'bg-blue-600' : 'bg-gray-300'
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${entry.hasHonors ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    entry.hasHonors ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${entry.hasHonors ? 'translate-x-6' : 'translate-x-1'
+                    }`}
                 />
               </button>
               <span className="text-sm text-gray-600">เกียรตินิยม (ถ้ามี)</span>
@@ -515,14 +550,23 @@ export default function EducationPage() {
           </div>
         ))}
 
+        <div className="flex justify-center mb-8">
+          <button
+            onClick={addEntry}
+            className="flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors bg-blue-50 px-4 py-2 rounded-full border border-dashed border-blue-300"
+          >
+            <PlusCircle className="w-5 h-5" />
+            เพิ่มประวัติการศึกษา
+          </button>
+        </div>
+
         {/* Message */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-lg text-sm font-medium ${
-              message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
-            }`}
+            className={`mb-6 p-4 rounded-lg text-sm font-medium ${message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+              }`}
           >
             {message.text}
           </div>

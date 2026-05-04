@@ -98,7 +98,9 @@ export default function MyBookmarksPage() {
 
   const filteredCandidates = candidates.filter((c) =>
     c.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.location?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const formatDate = (dateString: string) => {
@@ -155,17 +157,36 @@ export default function MyBookmarksPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="bg-[#202063] rounded-2xl p-4 mb-6 shadow-md border border-white/10">
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <div className="bg-[#202063] rounded-2xl p-4 mb-6 shadow-xl border border-white/10">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-300 group-focus-within:text-indigo-500 transition-colors" />
             <input
               type="text"
-              placeholder="ค้นหาชื่อ หรืออีเมลผู้สมัครจากรายการที่บันทึกไว้..."
+              placeholder="ค้นหาด้วยชื่อ, อีเมล, ตำแหน่งงาน หรือสถานที่ (เช่น กทม.)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 h-11 bg-white border-0 rounded-xl text-sm focus:ring-2 focus:ring-blue-400 outline-none transition-all"
+              // แก้ไข text-slate-900 เพื่อให้เห็นตัวอักษรชัดเจน และปรับ UI ให้ดูสะอาดตา
+              className="w-full pl-12 pr-4 h-12 bg-white border-0 rounded-xl text-[15px] text-slate-900 placeholder:text-slate-400 focus:ring-4 focus:ring-indigo-500/20 outline-none transition-all shadow-inner"
             />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-red-500"
+              >
+                ล้างค่า
+              </button>
+            )}
           </div>
+
+          {/* Badge แสดงจำนวนที่พบจากการกรอง (Optional เพิ่มเพื่อความสวยงาม) */}
+          {searchQuery && (
+            <div className="mt-3 flex items-center gap-2">
+              <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">กำลังแสดงผลการกรอง:</span>
+              <span className="px-2 py-0.5 rounded-md bg-white/10 text-white text-xs font-medium">
+                พบ {filteredCandidates.length} รายการ
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -190,7 +211,7 @@ export default function MyBookmarksPage() {
                 <h3 className="text-lg font-bold text-gray-900">ไม่พบรายการที่บันทึก</h3>
                 <p className="text-sm text-gray-500">คุณยังไม่ได้กดบันทึกผู้สมัครคนใดไว้</p>
                 <button
-                  onClick={() => router.push('/resume-directory')}
+                  onClick={() => router.push('/resumes')}
                   className="mt-4 px-6 py-2 bg-[#020263] text-white rounded-lg text-sm font-medium hover:bg-blue-800 transition-colors"
                 >
                   ไปที่หน้าค้นหาผู้สมัคร
@@ -203,7 +224,20 @@ export default function MyBookmarksPage() {
                   <div className="md:col-span-5 flex items-center gap-4 w-full">
                     <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-100 to-blue-50 flex items-center justify-center text-[#020263] font-bold text-xl border border-blue-100 overflow-hidden shadow-sm">
                       {candidate.avatarUrl ? (
-                        <img src={candidate.avatarUrl} alt="" className="w-full h-full object-cover" />
+                        <img
+                          src={candidate.avatarUrl}
+                          alt={candidate.fullName}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                          crossOrigin="anonymous"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            const parent = e.currentTarget.parentElement;
+                            if (parent) {
+                              parent.innerText = candidate.fullName?.charAt(0) || '?';
+                            }
+                          }}
+                        />
                       ) : (
                         candidate.fullName?.charAt(0)
                       )}

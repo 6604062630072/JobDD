@@ -1351,8 +1351,8 @@ export default function EmployerDashboard() {
 
           {/* Footer */}
           <div className="mt-4 pt-3 border-t border-gray-50 text-center">
-            <p className="text-[10px] text-gray-400 font-medium italic">
-              แสดงเฉพาะ 5 ลำดับแรกที่คุณสนใจล่าสุด
+            <p className="text-[10px] text-gray-400 font-medium">
+              แสดง {candidates.slice(0, 5).length} จากรายการล่าสุด (สูงสุด 5 รายการ)
             </p>
           </div>
         </div>

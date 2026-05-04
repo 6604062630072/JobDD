@@ -22,7 +22,8 @@
     "storage:backfill:apply": "node scripts/backfill-legacy-storage-urls.mjs --apply --json"
   },
   "dependencies": {
-    "@google/genai": "^1.42.0",
+    "@google/genai": "^1.50.1",
+    "@google/generative-ai": "^0.24.1",
     "@jobsabuy/shared-types": "workspace:*",
     "@jobsabuy/validators": "workspace:*",
     "@nestjs/common": "^11.0.0",

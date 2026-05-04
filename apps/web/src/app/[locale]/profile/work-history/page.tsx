@@ -19,6 +19,7 @@ import {
   ArrowUp,
   ArrowDown,
   FileText,
+  Car,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -26,8 +27,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1
 const profileSteps = [
   { icon: User, label: 'ข้อมูลส่วนบุคคล', completed: true, active: false },
   { icon: GraduationCap, label: 'ประวัติการศึกษา', completed: true, active: false },
-  { icon: Briefcase, label: 'ประวัติการทำงาน', completed: false, active: true },
+  { icon: Briefcase, label: 'ตำแหน่ง/ประวัติการทำงาน', completed: false, active: true },
   { icon: Languages, label: 'ความสามารถทางภาษา', completed: false, active: false },
+  { icon: Car, label: 'ทักษะการขับขี่', completed: false, active: false },
   { icon: Award, label: 'ใบประกาศนียบัตร', completed: false, active: false },
 ];
 
@@ -125,6 +127,7 @@ interface WorkEntry {
 interface JobPreference {
   id: string;
   position: string;
+  jobType: string;
 }
 
 function createEntry(): WorkEntry {
@@ -146,6 +149,7 @@ function createJobPreference(): JobPreference {
   return {
     id: Math.random().toString(36).slice(2),
     position: '',
+    jobType: '',
   };
 }
 
@@ -157,9 +161,10 @@ export default function WorkHistoryPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const completionPercent = 60;
+  const [completionPercent, setCompletionPercent] = useState(34);
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (completionPercent / 100) * circumference;
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -167,13 +172,11 @@ export default function WorkHistoryPage() {
     }
   }, [user, authLoading, router]);
 
-  // Load existing data
   useEffect(() => {
     if (!user) return;
     const token = localStorage.getItem('accessToken');
     if (!token) return;
-
-    // Fetch work histories
+    setCompletionPercent(34);
     fetch(`${API_URL}/users/me/work-histories`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -209,6 +212,7 @@ export default function WorkHistoryPage() {
             data.map((d: any) => ({
               id: d.id || Math.random().toString(36).slice(2),
               position: d.position || '',
+              jobType: d.jobType || '',
             })),
           );
         }
@@ -277,13 +281,14 @@ export default function WorkHistoryPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          items: validPreferences.map(({ position }) => ({ position })),
+          items: validPreferences.map(({ position, jobType }) => ({ position, jobType })),
         }),
       });
       if (!res2.ok) throw new Error('Save job preferences failed');
 
       setSaving(false);
       setMessage({ type: 'success', text: 'บันทึกข้อมูลเรียบร้อยแล้ว ✓' });
+      setCompletionPercent(50);
       setTimeout(() => router.push('/profile/languages'), 1000);
     } catch {
       setSaving(false);
@@ -324,10 +329,11 @@ export default function WorkHistoryPage() {
           {/* Header */}
           <div className="flex items-center gap-3 mb-8">
             <div className="w-1 h-6 rounded-full bg-linear-to-b from-blue-400 to-cyan-400" />
-            <h2 className="text-white text-4xl md:text-xl font-semibold tracking-wide">
+            <h2 className="text-white text-2xl md:text-3xl lg:text-4xl font-semibold tracking-wide">
               ความสมบูรณ์ของโปรไฟล์
             </h2>
           </div>
+
 
           {/* Main Glass Card */}
           <div
@@ -382,7 +388,7 @@ export default function WorkHistoryPage() {
 
               {/* Steps */}
               <div className="flex-1 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 sm:gap-2">
                   {profileSteps.map((step, index) => {
                     const Icon = step.icon;
                     return (
@@ -449,6 +455,85 @@ export default function WorkHistoryPage() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* position input */}
+        {/* [ส่วนที่ 1] ฝากประวัติ - ย้ายขึ้นมาไว้ก่อน */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8 mb-10">
+          <div className="flex items-center gap-2 mb-6">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <h2 className="text-xl font-bold text-gray-800">ฝากประวัติ (ตำแหน่งงานที่สนใจ)</h2>
+          </div>
+
+          <div className="pl-0 md:pl-7">
+            <p className="text-sm text-gray-500 mb-6">
+              ระบุตำแหน่งงานและประเภทงานที่คุณสนใจ (สูงสุด 3 ตำแหน่ง) เพื่อโอกาสในการจับคู่กับงานที่ตรงใจที่สุด
+            </p>
+
+            <div className="space-y-4">
+              {jobPreferences.map((pref, index) => (
+                <div key={pref.id} className="p-5 bg-gray-50 rounded-xl border border-gray-200 relative group">
+
+                  {/* Header ของแต่ละตำแหน่ง: แสดงลำดับและปุ่มจัดการ */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">ลำดับที่ {index + 1}</span>
+                    <div className="flex items-center gap-2">
+                      {/* ปุ่มเลื่อนลำดับ */}
+                      <div className="flex items-center bg-white border border-gray-200 rounded-md">
+                        <button onClick={() => moveJobPreference(index, 'up')} disabled={index === 0} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-20"><ArrowUp className="w-4 h-4" /></button>
+                        <button onClick={() => moveJobPreference(index, 'down')} disabled={index === jobPreferences.length - 1} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-20"><ArrowDown className="w-4 h-4" /></button>
+                      </div>
+                      {/* ปุ่มลบ */}
+                      {jobPreferences.length > 1 && (
+                        <button onClick={() => removeJobPreference(pref.id)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* ตำแหน่งงาน */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">ตำแหน่งงาน</label>
+                      <input
+                        type="text"
+                        value={pref.position}
+                        onChange={(e) => updateJobPreference(pref.id, e.target.value)}
+                        placeholder="เช่น Graphic Designer"
+                        className="w-full bg-white border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none placeholder-gray-400"
+                      />
+                    </div>
+
+                    {/* ประเภทงาน (เพิ่มเข้ามาใหม่) */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">ประเภทงาน</label>
+                      <SearchableSelect
+                        placeholder="โปรดเลือก"
+                        value={pref.jobType || ''}
+                        onChange={(val) => {
+                          setJobPreferences(prev => prev.map(p => p.id === pref.id ? { ...p, jobType: val } : p));
+                        }}
+                        options={JOB_TYPES.map((j) => ({ value: j, label: j }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* ปุ่มเพิ่มตำแหน่ง พร้อมล็อคไว้ที่ 3 ตำแหน่งตามที่คุยกัน */}
+            <button
+              onClick={addJobPreference}
+              disabled={jobPreferences.length >= 3}
+              className={`mt-6 px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 transition-all ${jobPreferences.length >= 3
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-blue-50 text-blue-600 hover:bg-blue-100 shadow-sm'
+                }`}
+            >
+              <Plus className="w-4 h-4" />
+              {jobPreferences.length >= 3 ? 'ระบุครบ 3 ตำแหน่งแล้ว' : 'เพิ่มตำแหน่งงาน'}
+            </button>
+          </div>
+        </div>
+
+        {/* Job History Section */}
         {entries.map((entry) => (
           <div
             key={entry.id}
@@ -582,82 +667,12 @@ export default function WorkHistoryPage() {
           <span className="font-medium">เพิ่มประวัติการทำงาน</span>
         </button>
 
-        {/* Job Preferences Section */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 md:p-8 mb-8">
-          <div className="flex items-center gap-2 mb-6">
-            <FileText className="w-5 h-5 text-blue-600" />
-            <h2 className="text-xl font-bold text-gray-800">ฝากประวัติ</h2>
-          </div>
-
-          <div className="pl-0 md:pl-7">
-            <h3 className="text-base font-semibold text-gray-700 mb-4">กรอกข้อมูล</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              ระบุตำแหน่งงานที่คุณสนใจ (สามารถระบุได้มากกว่า 1 ตำแหน่ง) ข้อมูลนี้จะถูกนำไปแสดงในส่วน "กำลังมองหางาน"
-            </p>
-
-            <div className="space-y-3">
-              {jobPreferences.map((pref, index) => (
-                <div key={pref.id} className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={pref.position}
-                      onChange={(e) => updateJobPreference(pref.id, e.target.value)}
-                      placeholder="เช่น Graphic Designer, UX/UI Designer"
-                      className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
-                    />
-                  </div>
-
-                  {/* Reorder Buttons */}
-                  <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1 border border-gray-200">
-                    <button
-                      onClick={() => moveJobPreference(index, 'up')}
-                      disabled={index === 0}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
-                      title="เลื่อนขึ้น"
-                    >
-                      <ArrowUp className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => moveJobPreference(index, 'down')}
-                      disabled={index === jobPreferences.length - 1}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
-                      title="เลื่อนลง"
-                    >
-                      <ArrowDown className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Delete Button */}
-                  {jobPreferences.length > 1 && (
-                    <button
-                      onClick={() => removeJobPreference(pref.id)}
-                      className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="ลบรายการนี้"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <button
-              onClick={addJobPreference}
-              className="mt-4 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-medium rounded-lg transition-colors flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              เพิ่มตำแหน่งงาน
-            </button>
-          </div>
-        </div>
-
         {/* Message */}
         {message && (
           <div
             className={`mb-6 p-4 rounded-lg text-sm font-medium ${message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
               }`}
           >
             {message.text}

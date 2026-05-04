@@ -176,28 +176,28 @@ const storefrontResumes: JobItem[] = [
         id: 'sales',
         titleKey: 'sales',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('งานขาย')}`,
+        href: `/resumes?query=${encodeURIComponent('งานขาย')}`,
         icon: <SalesIcon />
     },
     {
         id: 'food',
         titleKey: 'food',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('อาหารและเครื่องดื่ม')}`,
+        href: `/resumes?query=${encodeURIComponent('อาหารและเครื่องดื่ม')}`,
         icon: <FoodIcon />
     },
     {
         id: 'service',
         titleKey: 'service',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('บริการลูกค้า')}`,
+        href: `/resumes?query=${encodeURIComponent('บริการลูกค้า')}`,
         icon: <ServiceIcon />
     },
     {
         id: 'retail',
         titleKey: 'retail',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('ค้าปลีก')}`,
+        href: `/resumes?query=${encodeURIComponent('ค้าปลีก')}`,
         icon: <StoreIcon />
     },
 ];
@@ -207,28 +207,28 @@ const officeResumes: JobItem[] = [
         id: 'marketing',
         titleKey: 'marketing',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('การตลาด')}`,
+        href: `/resumes?query=${encodeURIComponent('การตลาด')}`,
         icon: <MarketingIcon />
     },
     {
         id: 'tech',
         titleKey: 'tech',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('เทคโนโลยีสารสนเทศ')}`,
+        href: `/resumes?query=${encodeURIComponent('เทคโนโลยีสารสนเทศ')}`,
         icon: <TechIcon />
     },
     {
         id: 'accounting',
         titleKey: 'accounting',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('บัญชี')}`,
+        href: `/resumes?query=${encodeURIComponent('บัญชี')}`,
         icon: <AccountingIcon />
     },
     {
         id: 'admin',
         titleKey: 'admin',
         count: 0,
-        href: `/resumes?categoryId=${encodeURIComponent('ธุรการ')}`,
+        href: `/resumes?query=${encodeURIComponent('ธุรการ')}`,
         icon: <DocumentIcon />
     },
 ];

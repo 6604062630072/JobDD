@@ -75,6 +75,7 @@ interface JobResult {
 interface MatchResult {
   job: JobResult;
   totalScore: number;
+  titleScore: number;
   hardSkillScore: number;
   expScore: number;
   matchedSkills: string[];
@@ -150,17 +151,51 @@ function extractInitialSkills(
   return Array.from(skills).slice(0, 12);
 }
 
-function parseRequiredSkills(raw: string[] | string): string[] {
-  if (Array.isArray(raw)) return raw;
-  if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
+function parseRequiredSkills(skills: any): string[] {
+  if (!skills) return [];
+  if (Array.isArray(skills)) {
+    return skills.flatMap(s => s.split(',').map((item: string) => item.trim()));
+  }
+  if (typeof skills === 'string') {
+    return skills.split(',').map((s: string) => s.trim());
   }
   return [];
+}
+
+function getTitleScore(jobTitle: string, userPosition: string): number {
+  let job = jobTitle.toLowerCase().trim();
+  let user = userPosition.toLowerCase().trim();
+
+  if (!user || !job) return 0;
+  if (job === user) return 100;
+
+  const synonymGroups = [
+    ['account', 'accounting', 'auditor', 'audit', 'tax', 'finance', 'bookkeeper', 'cpa', 'บัญชี', 'ตรวจสอบเงิน', 'สมุห์บัญชี', 'การเงิน', 'ภาษี'],
+    ['it', 'software', 'developer', 'programmer', 'engineer', 'stack', 'coder', 'backend', 'frontend', 'system', 'network', 'computer', 'data', 'เทคโนโลยี', 'โปรแกรมเมอร์', 'นักพัฒนา'],
+    ['sale', 'sales', 'marketing', 'bd', 'business development', 'ae', 'account executive', 'telesale', 'ขาย', 'การตลาด', 'เซลล์', 'พัฒนาธุรกิจ'],
+    ['hr', 'human resource', 'people', 'talent', 'recruitment', 'recruiter', 'admin', 'administrator', 'office', 'back office', 'ธุรการ', 'บุคคล', 'สรรหา'],
+    ['cs', 'customer service', 'support', 'coordinator', 'receptionist', 'service', 'ดูแลลูกค้า', 'ประสานงาน', 'ต้อนรับ', 'บริการ'],
+    ['production', 'factory', 'manufacturing', 'technician', 'mechanic', 'maintenance', 'qc', 'qa', 'ผลิต', 'โรงงาน', 'ช่าง', 'ซ่อมบำรุง', 'ควบคุมคุณภาพ'],
+    ['driver', 'logistic', 'logistics', 'warehouse', 'delivery', 'stock', 'ขนส่ง', 'โลจิสติกส์', 'คลังสินค้า', 'ส่งของ', 'คนขับรถ'],
+    ['design', 'designer', 'graphic', 'ux', 'ui', 'creative', 'content', 'editor', 'กราฟิก', 'ออกแบบ', 'ตัดต่อ', 'ครีเอทีฟ']
+  ];
+
+  const isMatchInGroup = synonymGroups.some(group =>
+    group.some(word => user.includes(word)) && group.some(word => job.includes(word))
+  );
+
+  if (isMatchInGroup) return 85;
+
+  const stopWords = ['senior', 'junior', 'assistant', 'staff', 'level', 'expert', 'specialist', 'หัวหน้า', 'ผู้ช่วย', 'เจ้าหน้าที่', 'manager', 'lead', 'director'];
+
+  const cleanJobWords = job.split(/[\s/&-]+/).filter(w => w.length > 2 && !stopWords.includes(w));
+  const cleanUserWords = user.split(/[\s/&-]+/).filter(w => w.length > 2 && !stopWords.includes(w));
+
+  const hasOverlap = cleanJobWords.some(jw => cleanUserWords.some(uw => uw.includes(jw) || jw.includes(uw)));
+
+  if (hasOverlap) return 70;
+
+  return 0;
 }
 
 function computeMatch(
@@ -168,46 +203,61 @@ function computeMatch(
   userSkills: string[],
   expYears: number,
   expectedSalary: number,
+  currentPosition: string = ""
 ): MatchResult {
   const reqSkills = parseRequiredSkills(job.requiredSkills);
-  const normalizedUser = userSkills.map((s) => s.toLowerCase().trim());
+
+  const titleMatchScore = getTitleScore(job.title, currentPosition);
+
+  const cleanUserSkills = userSkills.map(s =>
+    String(s).toLowerCase().replace(/[^a-z0-9ก-๙]/g, '')
+  ).filter(s => s.length > 0);
 
   const matchedSkills: string[] = [];
   const missedSkills: string[] = [];
 
   for (const skill of reqSkills) {
-    const normalizedSkill = skill.toLowerCase().trim();
-    const matched = normalizedUser.some(
-      (us) =>
-        us === normalizedSkill ||
-        us.includes(normalizedSkill) ||
-        normalizedSkill.includes(us),
+    const cleanReq = String(skill).toLowerCase().replace(/[^a-z0-9ก-๙]/g, '');
+    const isMatched = cleanUserSkills.some(cus =>
+      cus === cleanReq || (cleanReq.length > 3 && cus.includes(cleanReq)) || (cus.length > 3 && cleanReq.includes(cus))
     );
-    if (matched) matchedSkills.push(skill);
+
+    if (isMatched) matchedSkills.push(skill);
     else missedSkills.push(skill);
   }
-
-  const hardSkillScore =
-    reqSkills.length > 0 ? (matchedSkills.length / reqSkills.length) * 100 : 50;
+  const hardSkillRaw = reqSkills.length > 0 ? (matchedSkills.length / reqSkills.length) * 100 : 0;
 
   const reqExp = job.qualificationExperience || 0;
-  const expScore =
-    reqExp === 0 ? 100 : Math.min((expYears / reqExp) * 100, 100);
+  let expScoreRaw = 0;
 
-  const totalScore = Math.round(hardSkillScore * 0.7 + expScore * 0.3);
+  if (titleMatchScore === 0) {
+    expScoreRaw = 0;
+  }
+  else {
+    if (reqExp === 0) {
+      expScoreRaw = 100;
+    } else {
+      const expWeight = titleMatchScore >= 80 ? 1.0 : 0.5;
+      expScoreRaw = Math.min(((expYears * expWeight) / reqExp) * 100, 100);
+    }
+  }
 
-  const salaryWarning = !!(
-    expectedSalary > 0 &&
-    job.salaryMax &&
-    Number(job.salaryMax) > 0 &&
-    expectedSalary > Number(job.salaryMax) * 1.2
+  const totalScore = Math.round(
+    (titleMatchScore * 0.2) +
+    (hardSkillRaw * 0.5) +
+    (expScoreRaw * 0.3)
   );
+
+  const salary = Number(expectedSalary) || 0;
+  const salaryMax = job.salaryMax ? Number(job.salaryMax) : 0;
+  const salaryWarning = !!(salary > 0 && salaryMax > 0 && salary > salaryMax * 1.2);
 
   return {
     job,
     totalScore,
-    hardSkillScore: Math.round(hardSkillScore),
-    expScore: Math.round(expScore),
+    titleScore: Math.round(titleMatchScore),
+    hardSkillScore: Math.round(hardSkillRaw),
+    expScore: Math.round(expScoreRaw),
     matchedSkills,
     missedSkills,
     salaryWarning,
@@ -269,17 +319,37 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
 
   const applyParsedResume = (parsed: ParsedResume) => {
     if (parsed.skills && parsed.skills.length > 0) {
-      const merged = Array.from(new Set([...parsed.skills]));
-      setSkills(merged);
+      setSkills((prevSkills) => {
+        // 1. ฟังก์ชันช่วยทำความสะอาดคำ (ตัวพิมพ์เล็ก และตัดช่องว่าง)
+        const normalize = (s: string) => s.toLowerCase().trim();
+
+        // 2. สร้างรายการคำที่มีอยู่แล้วในรูปแบบที่ Normalize แล้ว
+        const existingNormalized = new Set(prevSkills.map(normalize));
+
+        // 3. กรองคำใหม่จาก AI: เอาเฉพาะคำที่ "ไม่เคยมีอยู่" หลังจากการ Normalize
+        const newUniqueSkills = parsed.skills!.filter(
+          (skill) => !existingNormalized.has(normalize(skill))
+        );
+
+        // 4. รวมของเดิมกับของใหม่ (ที่กรองแล้ว) เข้าด้วยกัน
+        return [...prevSkills, ...newUniqueSkills];
+      });
     }
+
+    // ส่วนเงินเดือน: ถ้า AI วิเคราะห์เจอ และของเดิมยังว่างอยู่ หรืออยากให้ AI อัปเดตก็ปล่อยไว้
     if (parsed.expectedSalary && parsed.expectedSalary > 0) {
       setExpectedSalary(String(parsed.expectedSalary));
     }
+
+    // ส่วนประสบการณ์: ให้ยึดตามที่ AI วิเคราะห์จาก Resume ล่าสุด
     if (parsed.experienceYears != null && parsed.experienceYears > 0) {
       setExpYearsOverride(parsed.experienceYears);
     }
+
+    // แสดงข้อความแจ้งเตือนผลการวิเคราะห์
     const position = parsed.currentPosition ? ` · ${t('label_position')}: ${parsed.currentPosition}` : '';
     const expStr = parsed.experienceYears ? ` · ${t('label_experience')}: ${parsed.experienceYears} ${t('label_years')}` : '';
+
     setParseSuccess(
       t('parse_success_msg', {
         skillCount: parsed.skills?.length ?? 0,
@@ -364,8 +434,9 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
       const jobs: JobResult[] = Array.isArray(data.data) ? data.data : [];
 
       const salary = parseInt(expectedSalary.replace(/,/g, '')) || 0;
+      const currentPos = works.find(w => w.isCurrent)?.position || works[0]?.position || "";
       const matched = jobs
-        .map((job) => computeMatch(job, skills, effectiveExpYears, salary))
+        .map((job) => computeMatch(job, skills, effectiveExpYears, salary, currentPos))
         .sort((a, b) => b.totalScore - a.totalScore)
         .slice(0, 15);
 
@@ -448,26 +519,34 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
       </div>
 
       {/* Rules Info */}
-      <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="flex items-center gap-2.5 bg-violet-50 rounded-2xl px-4 py-3 border border-violet-100">
-          <Target className="w-4 h-4 text-violet-600 shrink-0" />
-          <p className="text-[12px] text-violet-700 font-semibold">
-            {t('rule_hard_skills')} <span className="text-violet-900">70%</span>
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="flex items-center gap-2.5 bg-sky-50 rounded-2xl px-3 py-3 border border-sky-100">
+          <Target className="w-4 h-4 text-sky-600 shrink-0" />
+          <p className="text-[11px] lg:text-[12px] text-sky-700 font-semibold leading-tight">
+            ตำแหน่งงาน <span className="text-sky-900 font-bold block sm:inline">20%</span>
           </p>
         </div>
-        <div className="flex items-center gap-2.5 bg-indigo-50 rounded-2xl px-4 py-3 border border-indigo-100">
-          <Briefcase className="w-4 h-4 text-indigo-600 shrink-0" />
-          <p className="text-[12px] text-indigo-700 font-semibold">
-            {t('rule_experience_weight')} <span className="text-indigo-900">30%</span>
+
+        <div className="flex items-center gap-2.5 bg-red-50 rounded-2xl px-3 py-3 border border-red-100">
+          <Wand2 className="w-4 h-4 text-red-500 shrink-0" />
+          <p className="text-[11px] lg:text-[12px] text-red-700 font-semibold leading-tight">
+            {t('rule_hard_skills')} <span className="text-red-900 font-bold block sm:inline">50%</span>
           </p>
         </div>
-        <div className="flex items-center gap-2.5 bg-amber-50 rounded-2xl px-4 py-3 border border-amber-100">
+
+        <div className="flex items-center gap-2.5 bg-blue-50 rounded-2xl px-3 py-3 border border-blue-100">
+          <Briefcase className="w-4 h-4 text-blue-600 shrink-0" />
+          <p className="text-[11px] lg:text-[12px] text-blue-700 font-semibold leading-tight">
+            {t('rule_experience_weight')} <span className="text-blue-900 font-bold block sm:inline">30%</span>
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5 bg-amber-50 rounded-2xl px-3 py-3 border border-amber-100">
           <Clock className="w-4 h-4 text-amber-600 shrink-0" />
-          <p className="text-[12px] text-amber-700 font-semibold">
-            {t('rule_your_experience')}{' '}
-            <span className="text-amber-900">
-              {effectiveExpYears.toFixed(1)} ปี
-              {expYearsOverride !== null && ' (จากเรซูเม่)'}
+          <p className="text-[11px] lg:text-[12px] text-amber-700 font-semibold leading-tight">
+            {t('rule_your_experience')}
+            <span className="text-amber-900 font-bold block uppercase mt-0.5">
+              {effectiveExpYears.toFixed(1)} {t('unit_years')}
             </span>
           </p>
         </div>
@@ -538,7 +617,7 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
               />
             </div>
             <p className="text-[11px] text-slate-400 mt-1.5">
-              * หากสูงกว่าที่งานระบุเกิน 20% จะแสดงคำเตือน
+              {t('salary_warning_high')}
             </p>
           </div>
           <button
@@ -609,7 +688,6 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
                     )}
 
                     <div className="flex flex-col sm:flex-row gap-4">
-                      {/* Score Circle */}
                       <div className="shrink-0 flex flex-col items-center justify-center">
                         <div
                           className={`w-20 h-20 rounded-full ring-4 ${colors.ring} ${colors.bg} flex flex-col items-center justify-center`}
@@ -628,7 +706,6 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
                         </span>
                       </div>
 
-                      {/* Job Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-start justify-between gap-2 mb-2">
                           <div>
@@ -654,16 +731,14 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
                             </p>
                           </div>
 
-                          {/* Salary Warning */}
                           {r.salaryWarning && (
                             <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl">
                               <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                              เงินเดือนที่คาดหวังสูงกว่าที่ประกาศ &gt;20%
+                              {t('expected_salary_high')}
                             </div>
                           )}
                         </div>
 
-                        {/* Tags */}
                         <div className="flex flex-wrap gap-1.5 mb-3">
                           <span className="text-[11px] bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full">
                             {JOB_TYPE_LABEL[r.job.jobType] || r.job.jobType}
@@ -687,30 +762,47 @@ export default function AIJobMatcher({ works, certs, languages, resume }: Props)
                           )}
                         </div>
 
-                        {/* Score Breakdown */}
-                        <div className="grid grid-cols-2 gap-2 mb-3">
-                          <div>
-                            <div className="flex justify-between text-[11px] mb-1">
-                              <span className="text-slate-500 font-medium">Hard Skills (70%)</span>
-                              <span className="font-bold text-slate-700">{r.hardSkillScore}%</span>
+                        <div className="mb-6">
+                          <div className="flex justify-between items-end mb-2">
+                            <div>
+                              <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">AI Scoring Breakdown</p>
+                              <p className="text-[10px] text-slate-400">Weighted: Title 20% | Skills 50% | Exp 30%</p>
                             </div>
-                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${colors.bar} transition-all`}
-                                style={{ width: `${r.hardSkillScore}%` }}
-                              />
+                            <div className="text-right">
+                              <span className="text-lg font-black text-indigo-700">{r.totalScore}</span>
+                              <span className="text-[10px] font-bold text-slate-400 ml-1">/ 100</span>
                             </div>
                           </div>
-                          <div>
-                            <div className="flex justify-between text-[11px] mb-1">
-                              <span className="text-slate-500 font-medium">ประสบการณ์ (30%)</span>
-                              <span className="font-bold text-slate-700">{r.expScore}%</span>
+
+                          <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-inner border border-slate-200/50">
+                            <div
+                              className="h-full bg-sky-400 transition-all duration-700 ease-out border-r border-white/30"
+                              style={{ width: `${(r.titleScore * 0.2)}%` }}
+                            />
+
+                            <div
+                              className="h-full bg-red-500 transition-all duration-700 ease-out border-r border-white/30"
+                              style={{ width: `${(r.hardSkillScore * 0.5)}%` }}
+                            />
+
+                            <div
+                              className="h-full bg-blue-600 transition-all duration-700 ease-out"
+                              style={{ width: `${(r.expScore * 0.3)}%` }}
+                            />
+                          </div>
+
+                          <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-sm bg-sky-400" />
+                              <span className="text-[11px] font-medium text-slate-600">ตำแหน่ง ({Math.round(r.titleScore * 0.2)}/20)</span>
                             </div>
-                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${colors.bar} transition-all`}
-                                style={{ width: `${r.expScore}%` }}
-                              />
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-sm bg-red-500" />
+                              <span className="text-[11px] font-medium text-slate-600">ทักษะ ({Math.round(r.hardSkillScore * 0.5)}/50)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-2.5 h-2.5 rounded-sm bg-blue-600" />
+                              <span className="text-[11px] font-medium text-slate-600">ประสบการณ์ ({Math.round(r.expScore * 0.3)}/30)</span>
                             </div>
                           </div>
                         </div>

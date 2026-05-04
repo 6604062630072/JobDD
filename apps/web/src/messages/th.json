@@ -30,6 +30,7 @@
     "searchResumes": "ค้นหาผู้หางาน (นายจ้าง)",
     "regionalJobs": "งานภูมิภาค",
     "regionalJobsSub": {
+      "bangkok": "งานกรุงเทพฯ และปริมณฑล",
       "central": "งานภาคกลาง",
       "east": "งานภาคตะวันออก",
       "north": "งานภาคเหนือ",
@@ -87,6 +88,7 @@
       "all": "ทุกจังหวัด",
       "selectprovince": "เลือกจังหวัด",
       "bangkok": "กรุงเทพมหานคร",
+      "vicinity": "กรุงเทพฯ และปริมณฑล",
       "krabi": "กระบี่",
       "kanchanaburi": "กาญจนบุรี",
       "kalasin": "กาฬสินธุ์",
@@ -367,6 +369,9 @@
     },
     "filters": {
       "title": "ตัวกรองผู้สมัคร",
+      "allLanguages": "ทุกภาษา",
+      "levelAll": "ทุกระดับ",
+      "all": "ทั้งหมด",
       "province": "จังหวัดที่ผู้สมัครสนใจ",
       "genderAll": "เพศทั้งหมด",
       "gender": {
@@ -409,13 +414,35 @@
       "viewDetail": "ดูรายละเอียด",
       "emptyTitle": "ยังไม่พบผู้หางานที่ตรงเงื่อนไข",
       "emptyDesc": "ลองปรับจังหวัด ทักษะ ช่วงอายุ หรือระดับการศึกษา แล้วค้นหาใหม่อีกครั้ง",
-      "notSpecified": "ไม่ระบุตำแหน่ง"
+      "notSpecified": "ไม่ระบุตำแหน่ง",
+      "languageSkills": "ทักษะทางภาษา",
+      "drivingSkillsTitle": "ทักษะการขับขี่",
+      "noDrivingSkill": "ไม่มีข้อมูลทักษะการขับขี่",
+      "noProvince": "ไม่ระบุจังหวัด",
+      "address": "ที่อยู่"
     },
     "detailModal": {
       "postedAt": "โพสต์เมื่อ {time}",
       "desiredPosition": "ตำแหน่งที่สนใจ",
       "personalInfo": "ข้อมูลส่วนตัว",
+      "businessType": "ประเภทธุรกิจ",
+      "totalExperience": "ประสบการณ์รวม",
+      "noOtherLanguages": "ไม่มีข้อมูลภาษาเพิ่มเติม",
       "religion": "ศาสนา",
+      "religionValue": {
+        "buddhist": "พุทธ",
+        "christian": "คริสต์",
+        "islam": "อิสลาม",
+        "hindu": "ฮินดู",
+        "sikh": "ซิกข์",
+        "judaism": "ยิว",
+        "พุทธ": "พุทธ",
+        "คริสต์": "คริสต์",
+        "อิสลาม": "อิสลาม",
+        "ฮินดู": "ฮินดู",
+        "ซิกข์": "ซิกข์",
+        "ยิว": "ยิว"
+      },
       "nationality": " สัญชาติ",
       "nationalityValue": {
         "thai": "ไทย",
@@ -549,7 +576,7 @@
     }
   },
   "AIjobmatch": {
-    "aimatch": "JOBSABUY จับคู่ด้วยระบบ AI",
+    "aimatch": "JOBDD จับคู่ด้วยระบบ AI",
     "aimatcher": "ให้ระบบช่วยจับคู่งานที่เหมาะกับคุณจากทักษะ ประสบการณ์ และเรซูเม่ของคุณ เพื่อหาโอกาสงานที่ตรงมากขึ้นได้เร็วขึ้น",
     "useprofiledata": "ใช้ข้อมูลจากโปรไฟล์จริง",
     "fastanalyze": "วิเคราะห์ได้เร็วขึ้น",
@@ -566,6 +593,7 @@
     "upload_pdf_analyze": "อัปโหลด PDF เพื่อวิเคราะห์",
     "analyzing": "กำลังวิเคราะห์...",
     "analyze_stored": "วิเคราะห์เรซูเม่ที่อัปโหลดไว้",
+    "resume_uploaded": "เรซูเม่อัปโหลดสำเร็จ",
     "no_resume": "* ยังไม่มีเรซูเม่ที่อัปโหลดไว้",
     "input_skills_label": "ทักษะของคุณ (Hard Skills)",
     "salary_label": "เงินเดือนที่คาดหวัง (บาท/เดือน)",
@@ -576,13 +604,21 @@
     "score_medium": "เหมาะสม",
     "score_fair": "พอใช้",
     "score_low": "ต่ำ",
-    "parse_success_msg": "อ่านเรซูเม่สำเร็จ! พบ {{skillCount}} ทักษะ{{position}}{{experience}}",
+    "label_position": "ตำแหน่ง",
+    "label_experience": "ประสบการณ์",
+    "label_years": "ปี",
+    "parse_success_msg": "อ่านเรซูเม่สำเร็จ! พบ {skillCount} ทักษะ{position}{experience}",
     "no_resume_hint": "* ยังไม่มีเรซูเม่ที่อัปโหลดไว้ — อัปโหลด PDF ด้านบนเพื่อวิเคราะห์",
     "rule_hard_skills": "Hard Skills คิด",
     "rule_experience_weight": "ประสบการณ์คิด",
     "rule_your_experience": "ประสบการณ์ของคุณ",
     "rule_from_resume": "(จากเรซูเม่)",
-    "unit_years": "ปี"
+    "unit_years": "ปี",
+    "update": "อัปเดต",
+    "create": "สร้างไฟล์",
+    "salary_warning_high": "* หากสูงกว่าที่งานระบุเกิน 20% ระบบจะแสดงคำเตือน",
+    "expected_salary_high": "เงินเดือนที่คาดหวังสูงกว่าที่ประกาศ >20%",
+    "view": "ดู"
   },
   "jobcreate": {
     "header": "สร้างประกาศงาน",

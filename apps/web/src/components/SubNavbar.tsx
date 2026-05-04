@@ -33,7 +33,6 @@ export function SubNavbar({ userRole }: SubNavbarProps) {
             >
               {t('searchResumes')}
             </Link>
-            {/* คุณสามารถเพิ่ม Link สำหรับจัดการประกาศงานตรงนี้ได้ในอนาคต */}
           </>
         ) : (
           /* (JOBSEEKER) | (Guest) */

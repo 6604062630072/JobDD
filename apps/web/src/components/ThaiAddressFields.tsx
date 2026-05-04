@@ -23,7 +23,6 @@ interface ThaiAddressFieldsProps {
   }) => void;
 }
 
-// CDN URL — ใช้ jsDelivr ซึ่ง serve ไฟล์จาก GitHub โดยตรง
 const DATA_URL =
   'https://cdn.jsdelivr.net/gh/earthchie/jquery.Thailand.js@master/jquery.Thailand.js/database/raw_database/raw_database.json';
 
@@ -46,7 +45,6 @@ export function ThaiAddressFields({
       .then((r) => r.json())
       .then((json: ThaiAddress[]) => setData(json))
       .catch(() => {
-        /* silently fail — fallback inputs shown */
       })
       .finally(() => setLoading(false));
   }, []);
@@ -58,20 +56,20 @@ export function ThaiAddressFields({
   const subDistricts =
     province && district
       ? unique(
-          data
-            .filter((d) => d.province === province && d.amphoe === district)
-            .map((d) => d.district),
-        )
+        data
+          .filter((d) => d.province === province && d.amphoe === district)
+          .map((d) => d.district),
+      )
       : [];
   const zipcodes =
     province && district
       ? [
-          ...new Set(
-            data
-              .filter((d) => d.province === province && d.amphoe === district)
-              .map((d) => String(d.zipcode)),
-          ),
-        ]
+        ...new Set(
+          data
+            .filter((d) => d.province === province && d.amphoe === district)
+            .map((d) => String(d.zipcode)),
+        ),
+      ]
       : [];
 
   const handleProvince = (val: string) =>

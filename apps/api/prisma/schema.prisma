@@ -9,33 +9,35 @@ datasource db {
 }
 
 model User {
-  id             String             @id @default(uuid()) @db.Uuid
-  email          String?            @unique
-  passwordHash   String?            @map("password_hash")
-  googleId       String?            @unique @map("google_id")
-  lineId         String?            @unique @map("line_id")
-  role           UserRole           @default(JOBSEEKER)
-  firstName      String             @map("first_name")
-  lastName       String             @map("last_name")
-  phone          String?
-  avatarUrl      String?            @map("avatar_url")
-  createdAt      DateTime           @default(now()) @map("created_at")
-  updatedAt      DateTime           @updatedAt @map("updated_at")
-  applications   Application[]
-  certificates   Certificate[]
-  companies      Company[]
-  cookieConsents CookieConsentLog[]
-  educations     Education[]
-  jobPreferences JobPreference[]
-  languageTests  LanguageTest[]
-  notifications  Notification[]
-  resumes        Resume[]
-  savedJobs      SavedJob[]
-  languages      UserLanguage[]
-  profile        UserProfile?
-  workHistories  WorkHistory[]
-  bookmarks      Bookmark[]         @relation("CandidateToBookmark") 
-  employerBookmarks Bookmark[]      @relation("EmployerToBookmark")
+  id                String             @id @default(uuid()) @db.Uuid
+  email             String?            @unique
+  passwordHash      String?            @map("password_hash")
+  googleId          String?            @unique @map("google_id")
+  lineId            String?            @unique @map("line_id")
+  role              UserRole           @default(JOBSEEKER)
+  firstName         String             @map("first_name")
+  lastName          String             @map("last_name")
+  phone             String?
+  avatarUrl         String?            @map("avatar_url")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  applications      Application[]
+  bookmarks         Bookmark[]         @relation("CandidateToBookmark")
+  employerBookmarks Bookmark[]         @relation("EmployerToBookmark")
+  certificates      Certificate[]
+  companies         Company[]
+  cookieConsents    CookieConsentLog[]
+  educations        Education[]
+  jobPreferences    JobPreference[]
+  languageTests     LanguageTest[]
+  notifications     Notification[]
+  resumes           Resume[]
+  savedJobs         SavedJob[]
+  languages         UserLanguage[]
+  profile           UserProfile?
+  workHistories     WorkHistory[]
+  drivingSkills     DrivingSkill[]
+  desiredProvinces  DesiredProvince[]
 
   @@map("users")
 }
@@ -44,6 +46,7 @@ model JobPreference {
   id        String   @id @default(uuid()) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   position  String
+  jobType    String  @default("") @map("job_type")
   order     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -154,6 +157,8 @@ model Resume {
   userId         String        @map("user_id") @db.Uuid
   title          String
   fileUrl        String?       @map("file_url")
+  parsedData     Json?         @map("parsed_data")
+  fileHash       String?       @map("file_hash")  
   summary        String?
   experience     Json          @default("[]")
   education      Json          @default("[]")
@@ -220,9 +225,23 @@ model UserProfile {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @updatedAt @map("updated_at")
   isPublic       Boolean   @default(true) @map("is_public")
+  experience     Int?      @default(0) @map("experience")
+  expectedSalary Int?      @map("expected_salary")
+  religion       String?   @map("religion")
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
+}
+
+model DesiredProvince {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  provinceName String   @map("province_name")
+  createdAt    DateTime @default(now()) @map("created_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_desired_provinces")
 }
 
 model Education {
@@ -337,6 +356,30 @@ model CookieConsentLog {
   @@map("cookie_consent_logs")
 }
 
+model Bookmark {
+  id          String   @id @default(uuid()) @db.Uuid
+  employerId  String   @map("employer_id") @db.Uuid
+  candidateId String   @map("candidate_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  candidate   User     @relation("CandidateToBookmark", fields: [candidateId], references: [id], onDelete: Cascade)
+  employer    User     @relation("EmployerToBookmark", fields: [employerId], references: [id], onDelete: Cascade)
+
+  @@unique([employerId, candidateId])
+  @@map("bookmarks")
+}
+
+model DrivingSkill {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  skillType   String   @map("skill_type") 
+  category    String   
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("driving_skills")
+}
+
 enum UserRole {
   JOBSEEKER
   EMPLOYER
@@ -387,16 +430,4 @@ enum NotificationType {
   GENERAL
 }
 
-model Bookmark {
-  id          String   @id @default(uuid()) @db.Uuid
-  employerId  String   @map("employer_id") @db.Uuid
-  candidateId String   @map("candidate_id") @db.Uuid
-  createdAt   DateTime @default(now()) @map("created_at")
 
-  // ตรวจสอบว่ามี 2 บรรทัดนี้อย่างละ 1 ครั้งเท่านั้น
-  employer    User     @relation("EmployerToBookmark", fields: [employerId], references: [id], onDelete: Cascade)
-  candidate   User     @relation("CandidateToBookmark", fields: [candidateId], references: [id], onDelete: Cascade)
-
-  @@unique([employerId, candidateId])
-  @@map("bookmarks")
-}

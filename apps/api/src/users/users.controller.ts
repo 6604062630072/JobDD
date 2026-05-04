@@ -56,6 +56,8 @@ export class UsersController {
         @Req() req: Request,
         @Query('query') query?: string,
         @Query('province') province?: string,
+        @Query('language') language?: string,
+        @Query('languageLevel') languageLevel?: string,
         @Query('gender') gender?: string,
         @Query('ageMin') ageMin?: string,
         @Query('ageMax') ageMax?: string,
@@ -65,11 +67,14 @@ export class UsersController {
         @Query('institution') institution?: string,
         @Query('englishLevel') englishLevel?: string,
         @Query('businessType') businessType?: string,
+        @Query('jobType') jobType?: string,
     ) {
         const user = (req as any).user;
         return this.usersService.getCandidateDirectory({
             query,
             province,
+            language,
+            languageLevel,
             gender,
             ageMin,
             ageMax,
@@ -79,6 +84,7 @@ export class UsersController {
             institution,
             englishLevel,
             businessType,
+            jobType,
             currentUserId: user?.sub,
         });
     }
@@ -147,6 +153,36 @@ export class UsersController {
     }
 
     // ===============================
+    // Desired Provinces (สถานที่ที่สนใจทำงาน)
+    // ===============================
+    @Get('me/desired-provinces')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'ดูจังหวัดที่สนใจทำงาน' })
+    async getDesiredProvinces(@CurrentUser() user: JwtPayload) {
+        return this.usersService.getDesiredProvinces(user.sub);
+    }
+
+    @Put('me/desired-provinces')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'บันทึกจังหวัดที่สนใจทำงาน (replace all)' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                provinces: { type: 'array', items: { type: 'string' }, example: ['กรุงเทพมหานคร', 'นนทบุรี'] }
+            }
+        }
+    })
+    async upsertDesiredProvinces(
+        @CurrentUser() user: JwtPayload,
+        @Body() dto: { provinces: string[] },
+    ) {
+        return this.usersService.upsertDesiredProvinces(user.sub, dto.provinces);
+    }
+
+    // ===============================
     // Education
     // ===============================
     @Get('me/educations')
@@ -211,6 +247,28 @@ export class UsersController {
         @Body() dto: UpsertLanguagesDto,
     ) {
         return this.usersService.upsertLanguages(user.sub, dto);
+    }
+
+    // ===============================
+    // Driving Skills
+    // ===============================
+    @Get('me/driving-skills')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'ดูทักษะการขับขี่' })
+    async getDrivingSkills(@CurrentUser() user: JwtPayload) {
+        return this.usersService.getDrivingSkills(user.sub);
+    }
+
+    @Put('me/driving-skills')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'บันทึกทักษะการขับขี่ (replace all)' })
+    async upsertDrivingSkills(
+        @CurrentUser() user: JwtPayload,
+        @Body() dto: { skills: string[] },
+    ) {
+        return this.usersService.upsertDrivingSkills(user.sub, dto.skills);
     }
 
     // ===============================

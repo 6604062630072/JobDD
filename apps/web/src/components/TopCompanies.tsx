@@ -59,15 +59,12 @@ export function TopCompanies() {
 
     const container = scrollContainerRef.current;
 
-    // Check if we're at the beginning
     if (container.scrollLeft <= 0) {
-      // Jump to the end smoothly
       container.scrollTo({
         left: container.scrollWidth - container.clientWidth,
         behavior: 'smooth',
       });
     } else {
-      // Normal left scroll
       container.scrollBy({ left: -320, behavior: 'smooth' });
     }
   };
@@ -77,15 +74,12 @@ export function TopCompanies() {
 
     const container = scrollContainerRef.current;
 
-    // Check if we're at the end (with a small 5px buffer for rounding errors)
     if (Math.ceil(container.scrollLeft + container.clientWidth) >= container.scrollWidth - 5) {
-      // Jump to the beginning smoothly
       container.scrollTo({
         left: 0,
         behavior: 'smooth',
       });
     } else {
-      // Normal right scroll
       container.scrollBy({ left: 320, behavior: 'smooth' });
     }
   };
@@ -146,9 +140,7 @@ export function TopCompanies() {
                     sizes="(max-width: 768px) 280px, 320px"
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  {/* Overlay gradient */}
                   <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
-                  {/* Badge */}
                   {company.id === 1 && (
                     <div className="absolute top-4 right-4 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                       {t('recommended')}

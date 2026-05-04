@@ -7,6 +7,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { SearchableSelect } from '@/components/SearchableSelect';
 import { ThaiAddressFields } from '@/components/ThaiAddressFields';
+import { ProvinceSelect } from '@/components/ProvinceSelect';
 import { NATIONALITIES } from '@/data/nationalities';
 import {
   Pencil,
@@ -24,6 +25,7 @@ import {
   Languages,
   Award,
   Loader2,
+  Car,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -36,12 +38,36 @@ function getErrorMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+// วางไว้ด้านบน ใต้พวก import
+interface ProfileForm {
+  birthDay: string;
+  birthMonth: string;
+  birthYear: string;
+  height: string;
+  weight: string;
+  gender: string;
+  phone: string;
+  email: string;
+  experience: string;
+  lineId: string;
+  nationality: string;
+  maritalStatus: string;
+  militaryStatus: string;
+  address: string;
+  province: string;
+  district: string;
+  subDistrict: string;
+  postalCode: string;
+  religion: string;
+  expectedSalary: string;
+  desiredProvinces: string[];
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user, loading: authLoading, setUser } = useAuth();
 
-  // Form state
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ProfileForm>({
     birthDay: '',
     birthMonth: '',
     birthYear: '',
@@ -50,6 +76,7 @@ export default function ProfilePage() {
     gender: '',
     phone: '',
     email: '',
+    experience: '',
     lineId: '',
     nationality: '',
     maritalStatus: '',
@@ -59,7 +86,11 @@ export default function ProfilePage() {
     district: '',
     subDistrict: '',
     postalCode: '',
+    religion: '',
+    expectedSalary: '',
+    desiredProvinces: [],
   });
+
 
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -88,10 +119,11 @@ export default function ProfilePage() {
     { icon: GraduationCap, label: 'ประวัติการศึกษา', completed: false, active: false },
     { icon: Briefcase, label: 'ประวัติการทำงาน', completed: false, active: false },
     { icon: Languages, label: 'ความสามารถทางภาษา', completed: false, active: false },
+    { icon: Car, label: 'ทักษะการขับขี่', completed: false, active: false },
     { icon: Award, label: 'ใบประกาศนียบัตร', completed: false, active: false },
   ];
 
-  const [completionPercent, setCompletionPercent] = useState(20);
+  const [completionPercent, setCompletionPercent] = useState(0);
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (completionPercent / 100) * circumference;
 
@@ -105,38 +137,54 @@ export default function ProfilePage() {
     }
   }, [authLoading, user, router]);
 
-  // Load existing profile data
   useEffect(() => {
-    if (!user) return;
-    const token = localStorage.getItem('accessToken');
-    if (!token) return;
+    const fetchProfile = async () => {
+      if (!user) return;
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
 
-    fetch(`${API_URL}/users/me/profile`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.profile) {
-          const p = data.profile;
-          let birthDay = '',
-            birthMonth = '',
-            birthYear = '';
+      try {
+        const res = await fetch(`${API_URL}/users/me/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        const resProv = await fetch(`${API_URL}/users/me/desired-provinces`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const provData = await resProv.json();
+
+        let provincesArray: string[] = [];
+        const rawData = Array.isArray(provData) ? provData : (provData?.provinces || []);
+
+        provincesArray = rawData.map((p: any) => {
+          if (typeof p === 'string') return p;
+          return p.provinceName; // ดึง field provinceName จาก Object ของ Prisma
+        });
+
+        const p = data?.profile || data;
+
+        if (p) {
+          let bDay = '', bMonth = '', bYear = '';
           if (p.birthDate) {
             const d = new Date(p.birthDate);
-            birthDay = String(d.getDate());
-            birthMonth = String(d.getMonth() + 1);
-            // Convert CE year to Buddhist year
-            birthYear = String(d.getFullYear() + 543);
+            if (!isNaN(d.getTime())) {
+              bDay = String(d.getDate());
+              bMonth = String(d.getMonth() + 1);
+              bYear = String(d.getFullYear() + 543);
+            }
           }
+
           setForm({
-            birthDay,
-            birthMonth,
-            birthYear,
-            height: p.height ? String(p.height) : '',
-            weight: p.weight ? String(p.weight) : '',
+            birthDay: bDay,
+            birthMonth: bMonth,
+            birthYear: bYear,
+            height: p.height !== null && p.height !== undefined ? String(p.height) : '',
+            weight: p.weight !== null && p.weight !== undefined ? String(p.weight) : '',
             gender: p.gender || '',
             phone: p.phone || '',
             email: user?.email || '',
+            experience: p.experience !== null && p.experience !== undefined ? String(p.experience) : '',
             lineId: p.lineId || '',
             nationality: p.nationality || '',
             maritalStatus: p.maritalStatus || '',
@@ -146,15 +194,20 @@ export default function ProfilePage() {
             district: p.district || '',
             subDistrict: p.subDistrict || '',
             postalCode: p.postalCode || '',
+            religion: p.religion || '',
+            expectedSalary: p.expectedSalary !== null && p.expectedSalary !== undefined ? String(p.expectedSalary) : '',
+            desiredProvinces: provincesArray,
           });
         }
-      })
-      .catch(() => {
-        /* ignore load errors */
-      });
+      } catch (err) {
+        console.error("Load error:", err);
+      }
+    };
+
+    fetchProfile();
   }, [user]);
 
-  // Generic change handler
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
@@ -234,19 +287,23 @@ export default function ProfilePage() {
 
     const body = {
       birthDate,
-      height: form.height ? Number(form.height) : undefined,
-      weight: form.weight ? Number(form.weight) : undefined,
-      gender: form.gender || undefined,
-      phone: form.phone || undefined,
-      lineId: form.lineId || undefined,
-      nationality: form.nationality || undefined,
-      maritalStatus: form.maritalStatus || undefined,
-      militaryStatus: form.militaryStatus || undefined,
-      address: form.address || undefined,
-      province: form.province || undefined,
-      district: form.district || undefined,
-      subDistrict: form.subDistrict || undefined,
-      postalCode: form.postalCode || undefined,
+      height: form.height !== '' ? Number(form.height) : null,
+      weight: form.weight !== '' ? Number(form.weight) : null,
+      gender: form.gender || null,
+      phone: form.phone || null,
+      lineId: form.lineId || null,
+      experience: form.experience !== '' ? Number(form.experience) : 0,
+      nationality: form.nationality || null,
+      maritalStatus: form.maritalStatus || null,
+      militaryStatus: form.militaryStatus || null,
+      address: form.address || null,
+      province: form.province || null,
+      district: form.district || null,
+      subDistrict: form.subDistrict || null,
+      postalCode: form.postalCode || null,
+      religion: form.religion || null,
+      expectedSalary: form.expectedSalary !== '' ? Number(form.expectedSalary) : null,
+      //drivingSkills: form.drivingSkills || null,
     };
 
     try {
@@ -270,8 +327,19 @@ export default function ProfilePage() {
         throw new Error(err.message || `บันทึกไม่สำเร็จ (${res.status})`);
       }
 
+      const resProvince = await fetch(`${API_URL}/users/me/desired-provinces`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ provinces: form.desiredProvinces }),
+      });
+
+      if (!resProvince.ok) throw new Error('บันทึกจังหวัดที่สนใจไม่สำเร็จ');
+
       setMessage({ type: 'success', text: 'บันทึกข้อมูลเรียบร้อยแล้ว ✓' });
-      setCompletionPercent(40);
+      setCompletionPercent(17);
       setTimeout(() => router.push('/profile/education'), 1000);
     } catch (error: unknown) {
       setMessage({ type: 'error', text: getErrorMessage(error, 'เกิดข้อผิดพลาด') });
@@ -374,29 +442,27 @@ export default function ProfilePage() {
 
               {/* Steps */}
               <div className="flex-1 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 sm:gap-2">
                   {profileSteps.map((step, index) => {
                     const Icon = step.icon;
                     return (
                       <button
                         key={index}
                         className={`group relative flex sm:flex-col items-center gap-3 sm:gap-2.5 p-3 sm:p-4 rounded-xl transition-all duration-300 cursor-pointer
-                          ${
-                            step.active
-                              ? 'bg-white/15 border border-white/20 shadow-lg shadow-blue-500/10'
-                              : 'hover:bg-white/6 border border-transparent'
+                          ${step.active
+                            ? 'bg-white/15 border border-white/20 shadow-lg shadow-blue-500/10'
+                            : 'hover:bg-white/6 border border-transparent'
                           }`}
                       >
                         {/* Step number badge */}
                         <div
                           className={`relative shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-all duration-300
-                          ${
-                            step.completed
+                          ${step.completed
                               ? 'bg-linear-to-br from-blue-400 to-cyan-400 shadow-md shadow-cyan-400/20'
                               : step.active
                                 ? 'bg-white/15 border border-white/20'
                                 : 'bg-white/6 border border-white/10'
-                          }`}
+                            }`}
                         >
                           {step.completed ? (
                             <Check className="w-5 h-5 text-white" strokeWidth={2.5} />
@@ -529,36 +595,59 @@ export default function ProfilePage() {
                 />
               </div>
             </div>
-            <div className="md:col-span-3">
-              <label className="block text-sm font-bold text-gray-700 mb-2">ส่วนสูง (ซม.)</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="height"
-                  value={form.height}
-                  onChange={handleChange}
-                  placeholder="โปรดระบุ"
-                  className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
-                />
-              </div>
-            </div>
-            <div className="md:col-span-3">
-              <label className="block text-sm font-bold text-gray-700 mb-2">น้ำหนัก (กก.)</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  name="weight"
-                  value={form.weight}
-                  onChange={handleChange}
-                  placeholder="โปรดระบุ"
-                  className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
-                />
+            <div className="md:col-span-6">
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">ส่วนสูง (ซม.)</label>
+                  <input
+                    type="number"
+                    name="height"
+                    value={form.height}
+                    onChange={handleChange}
+                    placeholder="โปรดระบุ"
+                    className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">น้ำหนัก (กก.)</label>
+                  <input
+                    type="number"
+                    name="weight"
+                    value={form.weight}
+                    onChange={handleChange}
+                    placeholder="โปรดระบุ"
+                    className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">ประสบการณ์ (ปี)</label>
+                  <input
+                    type="number"
+                    name="experience"
+                    value={form.experience}
+                    onChange={handleChange}
+                    placeholder="โปรดระบุ"
+                    className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
+
           {/* Row 2: Gender, Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">เงินเดือนที่ต้องการ</label>
+              <input
+                type="number"
+                name="expectedSalary"
+                value={form.expectedSalary}
+                onChange={handleChange}
+                placeholder="ระบุเป็นตัวเลข (เช่น 25000)"
+                className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+              />
+            </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">เพศ</label>
               <div className="relative">
@@ -592,7 +681,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Row 3: LINE ID, Nationality */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
                 LINE ID <span className="text-gray-500 font-normal ml-1">(ไม่บังคับ)</span>
@@ -613,6 +702,17 @@ export default function ProfilePage() {
                 value={form.nationality}
                 onChange={(val) => setForm({ ...form, nationality: val })}
                 options={NATIONALITIES.map((n) => ({ value: n, label: n }))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">ศาสนา</label>
+              <input
+                type="text"
+                name="religion"
+                value={form.religion}
+                onChange={handleChange}
+                placeholder="โปรดระบุ"
+                className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-2.5 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
               />
             </div>
           </div>
@@ -654,36 +754,39 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Row 5: Current Address */}
-          <div className="mb-6">
-            <label className="block text-sm font-bold text-gray-700 mb-2">ที่อยู่ปัจจุบัน</label>
-            <textarea
-              rows={4}
-              name="address"
-              value={form.address}
-              onChange={handleChange}
-              placeholder="โปรดระบุ"
-              className="w-full bg-gray-100 border border-gray-300 text-gray-700 py-3 px-3 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400 resize-none"
-            ></textarea>
-          </div>
-
-          {/* Row 6: Location */}
+          {/* Row 5: Location */}
           <ThaiAddressFields
             province={form.province}
             district={form.district}
             subDistrict={form.subDistrict}
             postalCode={form.postalCode}
-            onChange={(fields) => setForm({ ...form, ...fields })}
+            onChange={(fields) => setForm(prev => ({ ...prev, ...fields }))}
           />
+
+          {/* Row 6: Interest Province */}
+
+          <div className="space-y-4">
+            <label className="block text-sm font-bold text-gray-700">จังหวัดที่สนใจทำงาน (เลือกได้หลายที่)</label>
+            <div className="max-w-xs">
+              <ProvinceSelect
+                selectedProvinces={form.desiredProvinces}
+                onChange={(provinces: string[]) => {
+                  setForm(prev => ({
+                    ...prev,
+                    desiredProvinces: provinces
+                  }));
+                }}
+              />
+            </div>
+          </div>
 
           {/* Message Toast */}
           {message && (
             <div
-              className={`mb-6 p-4 rounded-lg text-sm font-medium ${
-                message.type === 'success'
-                  ? 'bg-green-50 border border-green-200 text-green-700'
-                  : 'bg-red-50 border border-red-200 text-red-700'
-              }`}
+              className={`mb-6 p-4 rounded-lg text-sm font-medium ${message.type === 'success'
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700'
+                }`}
             >
               {message.text}
             </div>
@@ -720,6 +823,6 @@ export default function ProfilePage() {
         </div>
       </div>
       <Footer />
-    </div>
+    </div >
   );
 }

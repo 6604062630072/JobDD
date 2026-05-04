@@ -1,10 +1,18 @@
-import { IsString, IsArray } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsArray, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class JobPreferenceItemDto {
     @ApiProperty({ description: 'ตำแหน่งงานที่สนใจ' })
     @IsString()
     position!: string;
+
+    @ApiPropertyOptional({
+        description: 'ประเภทงาน (เช่น Full-time, Part-time, Internship)',
+        example: 'Full-time'
+    })
+    @IsString()
+    @IsOptional()
+    jobType?: string;
 }
 
 export class UpsertJobPreferenceDto {

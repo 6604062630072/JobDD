@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from '@/i18n/routing';
 import { useAuth } from '@/context/AuthContext';
 import { bookmarkService } from '@/services/bookmark';
@@ -13,7 +13,6 @@ import {
   Phone,
   Mail,
   Languages,
-  UserRound,
   X,
   BadgeInfo,
   CalendarDays,
@@ -21,6 +20,10 @@ import {
   FileText,
   MessageCircle,
   Heart,
+  Clock,
+  ExternalLink,
+  Award,
+  Car,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -73,6 +76,39 @@ type CandidateDetail = {
   workHistory: WorkHistory[];
   resumeFileUrl: string | null;
   avatarUrl?: string | null;
+  experience: number | null;
+  languages: UserLanguage[];
+  languageTests: LanguageTest[];
+  certificates: Certificate[];
+  drivingSkills: string[];
+  desiredProvinces: string[];
+  subDistrict?: string;
+  district?: string;
+  postalCode?: string;
+};
+
+type UserLanguage = {
+  id: string;
+  language: string;
+  level: string | null;
+  speaking: string | null;
+  reading: string | null;
+  writing: string | null;
+};
+
+type LanguageTest = {
+  id: string;
+  testName: string;
+  score: string | null;
+  fileUrl: string | null;
+};
+
+type Certificate = {
+  id: string;
+  name: string;
+  issuedBy: string | null;
+  issueYear: string | null;
+  imageUrl: string | null;
 };
 
 type ContactData = {
@@ -152,6 +188,30 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
   const t = useTranslations('CandidateDirectory');
   const locale = useLocale();
 
+  const getStarRating = (level: string) => {
+    const l = level?.toLowerCase() || '';
+    if (l.includes('native') || l.includes('เจ้าของภาษา')) return 5;
+    if (l.includes('fluent') || l.includes('ดีมาก')) return 4;
+    if (l.includes('good') || l.includes('ดี')) return 3;
+    if (l.includes('fair') || l.includes('พอใช้') || l.includes('ปานกลาง')) return 2;
+    if (l.includes('basic') || l.includes('พื้นฐาน')) return 1;
+    return 1;
+  };
+
+  const drivingSkillMap: Record<string, { th: string; en: string }> = {
+    l_car: { th: 'ใบขับขี่รถยนต์', en: 'Car License' },
+    l_bike: { th: 'ใบขับขี่รถจักรยานยนต์', en: 'Motorcycle License' },
+    l_truck_6: { th: 'ใบขับขี่รถบรรทุก 6 ล้อ', en: '6-Wheel Truck License' },
+    l_truck_10: { th: 'ใบขับขี่รถบรรทุก 10 ล้อ', en: '10-Wheel Truck License' },
+
+    v_car: { th: 'มีรถยนต์ส่วนตัว', en: 'Own Private Car' },
+    v_bike: { th: 'มีรถจักรยานยนต์ส่วนตัว', en: 'Own Motorcycle' },
+
+    m_backhoe: { th: 'รถแบคโฮ (Backhoe)', en: 'Backhoe' },
+    m_crane: { th: 'รถเครน (Crane)', en: 'Crane' },
+    m_forklift: { th: 'รถยก (Forklift)', en: 'Forklift' },
+  };
+
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -198,6 +258,8 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
       });
       const json = await res.json();
 
+      console.log("DEBUG CONTACT DATA:", json);
+
       if (!res.ok) {
         throw new Error(json.message || t('detailModal.errorFetchContact'));
       }
@@ -209,8 +271,6 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
       setContactLoading(false);
     }
   };
-
-  const starList = useMemo(() => Array.from({ length: 5 }, (_, index) => index < (data?.englishStars || 0)), [data?.englishStars]);
 
   if (loading) {
     return (
@@ -252,48 +312,61 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm p-4 sm:p-6 overflow-y-auto">
       <div className="max-w-6xl mx-auto bg-slate-50 rounded-[2rem] shadow-2xl overflow-hidden min-h-[80vh]">
-        <div className="bg-white border-b border-slate-100 px-6 sm:px-8 py-6 flex items-start justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100 mb-3">
+        <div className="bg-white border-b border-slate-100 px-6 sm:px-8 py-6 flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0"> {/* เพิ่ม min-w-0 เพื่อให้ truncate ทำงานได้ถ้าชื่อยาว */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100 mb-2">
               <Briefcase className="w-4 h-4" />
               {data.candidateType ? t(`list.${data.candidateType.toLowerCase()}`) : t('list.jobSeeker')}
             </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">{t('detailModal.desiredPosition')}</h2>
-            <p className="text-sm text-slate-500 mt-2">
+
+            {/* แสดงตำแหน่งงานหลัก และประเภทงานแรก (ถ้ามี) */}
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
+                {/* เอาตำแหน่งแรกมาโชว์เป็น Title */}
+                {data.desiredPosition?.split(',')[0].trim() || t('detailModal.desiredPosition')}
+              </h2>
+
+              {/* ถ้ามีประเภทงาน ให้เอาประเภทงานแรกมาใส่กรอบมนๆ ต่อท้ายชื่อตำแหน่งใน Header เลย */}
+              {(data as any).jobTypes?.[0] && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-xs font-bold text-slate-500 shadow-sm mt-1">
+                  {(data as any).jobTypes[0]}
+                </span>
+              )}
+            </div>
+
+            <p className="text-sm text-slate-500 mt-2 flex items-center gap-2">
+              <Clock className="w-4 h-4" />
               {t('detailModal.postedAt', { time: timeAgo(data.postedAt, locale) })}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-3 shrink-0">
             {user?.role === 'EMPLOYER' && (
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (onBookmarkToggle) {
-                    onBookmarkToggle();
-                  }
-                  bookmarkService.toggle(candidateId).catch((err) => {
-                    console.error("Bookmark failed", err);
-                    onBookmarkToggle?.();
-                  });
+                  if (onBookmarkToggle) onBookmarkToggle();
+                  bookmarkService.toggle(candidateId).catch(() => onBookmarkToggle?.());
                 }}
-                className={`p-2.5 rounded-full border transition-all ${isBookmarked
-                  ? "bg-rose-50 border-rose-100 text-rose-500"
-                  : "bg-slate-50 border-slate-100 text-slate-400 hover:text-rose-500"
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl border transition-all shadow-sm font-bold text-sm ${isBookmarked
+                  ? "bg-rose-50 border-rose-200 text-rose-600"
+                  : "bg-white border-slate-200 text-slate-600 hover:border-rose-300 hover:text-rose-500"
                   }`}
               >
                 <Heart
                   className="w-5 h-5"
                   fill={isBookmarked ? "currentColor" : "none"}
                 />
+                <span>{isBookmarked ? (locale === 'en' ? 'Saved' : 'บันทึกแล้ว') : (locale === 'en' ? 'Save' : 'บันทึก')}</span>
               </button>
             )}
 
             <button
               onClick={onClose}
-              className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              className="p-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
             >
-              <X className="w-5 h-5" />
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
@@ -321,7 +394,9 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
                 <div className="text-slate-300 mb-1">{t('detailModal.religion')}</div>
-                <div className="font-semibold">{data.religion || '-'}</div>
+                {data.religion && data.religion !== '-'
+                  ? t(`detailModal.religionValue.${data.religion}`)
+                  : '-'}
               </div>
               <div className="rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
                 <div className="text-slate-300 mb-1">{t('detailModal.nationality')}</div>
@@ -369,37 +444,92 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
           </aside>
 
           <section className="p-6 sm:p-8 space-y-6">
+
+            {/* ส่วนที่ 1: รายการตำแหน่งที่สนใจ (Desired Positions) */}
             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-              <h3 className="text-lg font-extrabold text-black mb-4">{data.desiredPosition}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
-                <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3 border border-slate-100">
-                  <Briefcase className="w-4 h-4 mt-0.5 text-indigo-500" />
+              <div className="flex items-center gap-2 mb-6">
+                <Star className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-extrabold text-black">{locale === 'en' ? 'Job Preferences' : 'ตำแหน่งงานที่สนใจ'}</h3>
+              </div>
+
+              <div className="space-y-4">
+                {data.desiredPosition ? (
+                  data.desiredPosition.split(',').map((pos, idx) => (
+                    <div key={idx} className="flex items-center gap-3 w-full group">
+                      <div className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+
+                      <span className="text-sm font-bold text-slate-800 whitespace-nowrap">
+                        {pos.trim()}
+                      </span>
+
+                      <div className="flex-grow border-b border-dotted border-slate-300 mx-2 mb-1" />
+
+                      {(data as any).jobTypes?.[idx] && (
+                        <div className="px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-500 whitespace-nowrap shadow-sm group-hover:border-indigo-200 group-hover:text-indigo-600 transition-colors">
+                          {(data as any).jobTypes[idx]}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-slate-400 italic">{t('list.noSpecified')}</p>
+                )}
+              </div>
+
+              {/* จังหวัดที่สนใจ */}
+              <div className="mt-6 pt-6 border-t border-slate-50">
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                  {locale === 'en' ? 'Preferred Locations' : 'จังหวัดที่สนใจทำงาน'}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {data.desiredProvinces?.map((p, i) => (
+                    <span key={i} className="px-3 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg border border-slate-200">
+                      {p}
+                    </span>
+                  )) || '-'}
+                </div>
+              </div>
+            </div>
+
+            {/* ส่วนที่ 2: ข้อมูลทั่วไป (General Info) */}
+            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <BadgeInfo className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-extrabold text-black">{locale === 'en' ? 'General Information' : 'ข้อมูลทั่วไป'}</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-4 border border-slate-100">
+                  <Briefcase className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-slate-500">{t('detailModal.expectedSalary')}</div>
-                    <div className="font-semibold">{data.expectedSalaryText}</div>
+                    <div className="text-slate-500 text-xs">{t('detailModal.expectedSalary')}</div>
+                    <div className="font-bold text-slate-900 text-xl mt-1">{data.expectedSalaryText}</div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3 border border-slate-100">
-                  <MapPin className="w-4 h-4 mt-0.5 text-indigo-500" />
+
+                <div className="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-4 border border-slate-100">
+                  <MapPin className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-slate-500">{t('detailModal.workProvince')}</div>
-                    <div className="font-semibold">{data.workProvince}</div>
+                    <div className="text-slate-500 text-xs">{locale === 'en' ? 'Current Location' : 'ที่อยู่ปัจจุบัน'}</div>
+                    <div className="font-bold text-slate-900 text-sm leading-relaxed mt-1">
+                      {data.province ? `${data.subDistrict || ''} ${data.district || ''} ${data.province} ${data.postalCode || ''}` : '-'}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">-
               <div className="flex items-center gap-3 mb-4">
                 <Briefcase className="w-5 h-5 text-indigo-600" />
                 <h3 className="text-lg font-extrabold text-black">{t('detailModal.skillsTitle')}</h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {data.skills.length > 0 ? (
-                  data.skills.map((skill) => (
+                {data.skills && data.skills.filter(s => s && s.trim() !== "").length > 0 ? (
+                  Array.from(new Set(data.skills.filter(s => s && s.trim() !== ""))).map((skill, idx) => (
                     <span
-                      key={skill}
-                      className="px-3 py-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 text-sm font-medium"
+                      key={`${skill}-${idx}`}
+                      className="px-3 py-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 text-sm font-medium animate-in fade-in duration-300"
                     >
                       {skill}
                     </span>
@@ -410,21 +540,152 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
               </div>
             </div>
 
+            {/* ทักษะการขับขี่ */}
+
             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-6">
+                <Car className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-lg font-extrabold text-black">
+                  {locale === 'en' ? 'Driving Skills' : 'ทักษะการขับขี่'}
+                </h3>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {data.drivingSkills && data.drivingSkills.length > 0 ? (
+                  data.drivingSkills.map((skillId) => {
+                    const skillInfo = drivingSkillMap[skillId];
+
+                    return (
+                      <span
+                        key={skillId}
+                        className="px-3 py-2 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 text-sm font-medium flex items-center gap-2"
+                      >
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                        {skillInfo
+                          ? (locale === 'en' ? skillInfo.en : skillInfo.th)
+                          : skillId
+                        }
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="text-sm text-slate-400 italic flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-slate-300" />
+                    {locale === 'en' ? 'No driving license information' : 'ไม่มีข้อมูลใบอนุญาตขับขี่'}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-6">
                 <Languages className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-lg font-extrabold text-black">{t('detailModal.englishLevel')}</h3>
+                <h3 className="text-lg font-extrabold text-black">
+                  {locale === 'en' ? 'Language Proficiency' : 'ทักษะทางภาษาและผลคะแนนสอบ'}
+                </h3>
               </div>
-              <div className="flex items-center gap-2 mb-3">
-                {starList.map((filled, index) => (
-                  <Star
-                    key={index}
-                    className={`w-5 h-5 ${filled ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
-                  />
-                ))}
-                <span className="ml-1 text-sm font-semibold text-slate-800">{data.englishLevelLabel}</span>
+
+
+              <div className="space-y-3">
+                {data.languages && data.languages.length > 0 ? (
+                  data.languages.map((lang) => {
+                    const isEnglish = lang.language.toLowerCase().includes('english') || lang.language.includes('อังกฤษ');
+
+                    const stars = getStarRating(lang.level || '');
+
+                    return (
+                      <div key={lang.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-3">
+                            <span className="font-bold text-slate-900 text-base">{lang.language}</span>
+                            <div className="flex items-center">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  className={`w-3.5 h-3.5 ${s <= stars ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-slate-600">
+                            {lang.level && (
+                              <span className="mr-3">
+                                {locale === 'en' ? 'Level' : 'ระดับ'}: <span className="text-indigo-600 font-bold">{lang.level}</span>
+                              </span>
+                            )}
+                            {lang.speaking && (
+                              <p className="mt-1 text-slate-500 italic font-medium">
+                                {locale === 'en' ? 'Speak' : 'พูด'}: {lang.speaking} / {locale === 'en' ? 'Read' : 'อ่าน'}: {lang.reading} / {locale === 'en' ? 'Write' : 'เขียน'}: {lang.writing}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {data.languageTests?.filter(t => {
+                            const testName = t.testName.toLowerCase();
+                            const langName = lang.language.toLowerCase();
+
+                            if (isEnglish) {
+                              return ['toeic', 'ielts', 'toefl', 'english', 'duolingo'].some(key => testName.includes(key));
+                            }
+
+                            if (langName.includes('ญี่ปุ่น') || langName.includes('japan')) {
+                              return testName.includes(langName) || ['jlpt', 'n1', 'n2', 'n3', 'n4', 'n5', 'nat-test'].some(key => testName.includes(key));
+                            }
+
+                            if (langName.includes('จีน') || langName.includes('chinese') || langName.includes('mandarin')) {
+                              return testName.includes(langName) || ['hsk', 'tocfl'].some(key => testName.includes(key));
+                            }
+
+                            return testName.includes(langName);
+                          }).map((test) => (
+                            <div key={test.id} className="flex items-center gap-3 p-2 px-3 bg-white rounded-xl border border-indigo-100 shadow-sm transition-transform hover:scale-105">
+                              <div className="text-right">
+                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{test.testName}</div>
+                                <div className="text-sm font-black text-indigo-600">{test.score || '-'}</div>
+                              </div>
+                              {test.fileUrl && (
+                                <a href={test.fileUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-indigo-50 rounded-lg text-indigo-600 hover:bg-indigo-600 hover:text-white transition-colors">
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-400 text-sm">
+                    {locale === 'en' ? 'No language data provided' : 'ไม่มีข้อมูลทักษะทางภาษา'}
+                  </div>
+                )}
+
+                {/* Certificates Section */}
+                {data.certificates && data.certificates.length > 0 && (
+                  <div className="pt-5 mt-3 border-t border-slate-100">
+                    <div className="text-[11px] font-bold text-slate-400 mb-4 flex items-center gap-2 uppercase tracking-[0.1em]">
+                      <Award className="w-4 h-4 text-slate-400" />
+                      {locale === 'en' ? 'Certificates' : 'ประกาศนียบัตร / อื่นๆ'}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {data.certificates.map((cert) => (
+                        <div key={cert.id} className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-white hover:shadow-md transition-all group">
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">{cert.name}</div>
+                            <div className="text-[10px] text-slate-500 truncate">{cert.issuedBy}</div>
+                          </div>
+                          {cert.imageUrl && (
+                            <a href={cert.imageUrl} target="_blank" rel="noreferrer" className="text-[10px] font-black text-indigo-500 shrink-0 ml-3 bg-white px-2 py-1 rounded-md border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all uppercase">View</a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              <p className="text-sm text-slate-500">{data.englishDetails}</p>
             </div>
 
             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
@@ -454,24 +715,56 @@ export function CandidateDetailModal({ candidateId, onClose, isBookmarked, onBoo
             </div>
 
             <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <CalendarDays className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-lg font-extrabold text-black">{t('detailModal.workHistoryTitle')}</h3>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <CalendarDays className="w-5 h-5 text-indigo-600" />
+                  <h3 className="text-lg font-extrabold text-black">{t('detailModal.workHistoryTitle')}</h3>
+                </div>
+                <div className="text-right">
+                  <div className="text-[15px] font-bold text-slate-400 uppercase tracking-tight">{t('detailModal.totalExperience')}</div>
+                  <div className="flex items-baseline justify-end">
+                    <span className="text-3xl font-black text-indigo-600">
+                      {data.experience !== null && data.experience > 0 ? data.experience : '0'}
+                    </span>
+                    <span className="text-sm font-bold text-slate-500 ml-1">
+                      {t('list.ageUnit') || 'ปี'}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div className="space-y-4">
-                {data.workHistory.length > 0 ? (
+                {data.workHistory && data.workHistory.length > 0 ? (
                   data.workHistory.map((work) => (
                     <div key={work.id} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
-                      <div className="font-bold text-slate-900">{work.position}</div>
-                      <div className="text-sm text-slate-700 mt-1">{work.company}</div>
-                      <div className="text-xs text-slate-500 mt-2">
+                      <div className="flex justify-between items-start gap-2">
+                        <div>
+                          <div className="font-bold text-slate-900">{work.position || '-'}</div>
+                          <div className="text-sm text-indigo-600 font-medium mt-0.5">{work.company || '-'}</div>
+                        </div>
+
+                        {work.isCurrent && (
+                          <span className="bg-indigo-100 text-indigo-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">
+                            {t('detailModal.present')}
+                          </span>
+                        )}
+                      </div>
+
+                      {work.businessType && (
+                        <div className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                          <span className="text-slate-400">{t('detailModal.businessType')}:</span>
+                          <span className="text-slate-600">{work.businessType}</span>
+                        </div>
+                      )}
+
+                      <div className="text-xs text-slate-400 mt-2 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
                         {work.startMonth}/{work.startYear} -{' '}
                         {work.isCurrent ? t('detailModal.present') : `${work.endMonth}/${work.endYear}`}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-slate-500">{t('detailModal.noWork')}</p>
+                  <p className="text-sm text-slate-500 italic text-center py-4">{t('detailModal.noWork')}</p>
                 )}
               </div>
             </div>

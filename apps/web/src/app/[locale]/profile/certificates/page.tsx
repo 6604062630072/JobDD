@@ -17,6 +17,7 @@ import {
   Check,
   Upload,
   X,
+  Car,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -26,6 +27,7 @@ const profileSteps = [
   { icon: GraduationCap, label: 'ประวัติการศึกษา', completed: true, active: false },
   { icon: Briefcase, label: 'ประวัติการทำงาน', completed: true, active: false },
   { icon: Languages, label: 'ความสามารถทางภาษา', completed: true, active: false },
+  { icon: Car, label: 'ทักษะการขับขี่', completed: true, active: false },
   { icon: Award, label: 'ใบประกาศนียบัตร', completed: false, active: true },
 ];
 
@@ -76,7 +78,7 @@ export default function CertificatesPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
-  const completionPercent = 100;
+  const [completionPercent, setCompletionPercent] = useState(83);
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (completionPercent / 100) * circumference;
 
@@ -91,6 +93,7 @@ export default function CertificatesPage() {
     if (!user) return;
     const token = localStorage.getItem('accessToken');
     if (!token) return;
+    setCompletionPercent(83);
     fetch(`${API_URL}/users/me/certificates`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -109,7 +112,7 @@ export default function CertificatesPage() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [user]);
 
   const updateEntry = (id: string, field: keyof CertificateEntry, value: string) => {
@@ -211,6 +214,7 @@ export default function CertificatesPage() {
         type: 'success',
         text: 'บันทึกใบประกาศนียบัตรเรียบร้อยแล้ว — โปรไฟล์สมบูรณ์ 100% ✓',
       });
+      setCompletionPercent(100);
       setTimeout(() => router.push('/profilefull'), 2000);
     } catch (error: unknown) {
       setSaving(false);
@@ -218,7 +222,7 @@ export default function CertificatesPage() {
     }
   };
 
-  const handleBack = () => router.push('/profile/languages');
+  const handleBack = () => router.push('/profile/driving');
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
@@ -306,7 +310,7 @@ export default function CertificatesPage() {
 
               {/* Steps */}
               <div className="flex-1 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 sm:gap-2">
                   {profileSteps.map((step, index) => {
                     const Icon = step.icon;
                     return (
@@ -519,11 +523,10 @@ export default function CertificatesPage() {
         {/* Message */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-lg text-sm font-medium ${
-              message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
-            }`}
+            className={`mb-6 p-4 rounded-lg text-sm font-medium ${message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+              }`}
           >
             {message.text}
           </div>

@@ -18,6 +18,7 @@ import {
   Check,
   Upload,
   FileText,
+  Car,
 } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
@@ -27,6 +28,7 @@ const profileSteps = [
   { icon: GraduationCap, label: 'ประวัติการศึกษา', completed: true, active: false },
   { icon: Briefcase, label: 'ประวัติการทำงาน', completed: true, active: false },
   { icon: Languages, label: 'ความสามารถทางภาษา', completed: false, active: true },
+  { icon: Car, label: 'ทักษะการขับขี่', completed: false, active: false },
   { icon: Award, label: 'ใบประกาศนียบัตร', completed: false, active: false },
 ];
 
@@ -52,11 +54,10 @@ const LANGUAGES_LIST = [
 ];
 
 const LANGUAGE_LEVELS = [
-  'เบื้องต้น (Basic)',
+  'พื้นฐาน(Basic)',
   'พอใช้ (Fair)',
   'ดี (Good)',
-  'ดีมาก (Very Good)',
-  'ดีเยี่ยม (Excellent)',
+  'ดีมาก (Fluent)',
   'เจ้าของภาษา (Native)',
 ];
 
@@ -141,7 +142,7 @@ export default function LanguagesPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const completionPercent = 80;
+  const [completionPercent, setCompletionPercent] = useState(50);
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (completionPercent / 100) * circumference;
 
@@ -156,6 +157,7 @@ export default function LanguagesPage() {
     if (!user) return;
     const token = localStorage.getItem('accessToken');
     if (!token) return;
+    setCompletionPercent(50);
     fetch(`${API_URL}/users/me/languages`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -185,7 +187,7 @@ export default function LanguagesPage() {
           );
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [user]);
 
   // Language entries
@@ -294,7 +296,8 @@ export default function LanguagesPage() {
       }
       setSaving(false);
       setMessage({ type: 'success', text: 'บันทึกความสามารถทางภาษาเรียบร้อยแล้ว ✓' });
-      setTimeout(() => router.push('/profile/certificates'), 1000);
+      setCompletionPercent(67);
+      setTimeout(() => router.push('/profile/driving'), 1000);
     } catch {
       setSaving(false);
       setMessage({ type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
@@ -389,7 +392,7 @@ export default function LanguagesPage() {
 
               {/* Steps */}
               <div className="flex-1 w-full">
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 sm:gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 sm:gap-2">
                   {profileSteps.map((step, index) => {
                     const Icon = step.icon;
                     return (
@@ -665,11 +668,10 @@ export default function LanguagesPage() {
         {/* Message */}
         {message && (
           <div
-            className={`mb-6 p-4 rounded-lg text-sm font-medium ${
-              message.type === 'success'
-                ? 'bg-green-50 border border-green-200 text-green-700'
-                : 'bg-red-50 border border-red-200 text-red-700'
-            }`}
+            className={`mb-6 p-4 rounded-lg text-sm font-medium ${message.type === 'success'
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+              }`}
           >
             {message.text}
           </div>

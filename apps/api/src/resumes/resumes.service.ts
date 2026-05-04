@@ -6,8 +6,11 @@ import {
     InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { GoogleGenAI, Type } from '@google/genai';
 import { UploadService } from '../upload/upload.service';
+import { ConfigService } from '@nestjs/config';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import * as crypto from 'crypto';
+
 const pdfParse = require('pdf-parse');
 
 @Injectable()
@@ -15,6 +18,7 @@ export class ResumesService {
     constructor(
         readonly prisma: PrismaService,
         readonly uploadService: UploadService,
+        private configService: ConfigService,
     ) { }
 
     async create(userId: string, title: string) {
@@ -41,7 +45,6 @@ export class ResumesService {
     }
 
     async uploadFile(userId: string, file: Express.Multer.File) {
-        // Find or create resume for user
         let resume = await this.prisma.resume.findFirst({
             where: { userId },
             orderBy: { createdAt: 'desc' },
@@ -65,6 +68,8 @@ export class ResumesService {
                 data: {
                     fileUrl,
                     title: file.originalname.replace(/\.pdf$/i, '') || 'My Resume',
+                    parsedData: null,
+                    fileHash: null,
                 },
             });
         } else {
@@ -86,92 +91,107 @@ export class ResumesService {
     async remove(id: string, userId: string) {
         const resume = await this.prisma.resume.findUnique({ where: { id } });
         if (!resume) throw new NotFoundException('ไม่พบ Resume');
-        if (resume.userId !== userId) throw new ForbiddenException('ไม่มีสิทธิ์ลบ Resume นี้');
+        if (resume.userId !== userId) throw new ForbiddenException('ไม่มีสิทธิ์');
 
         if (resume.fileUrl) {
             await this.uploadService.deleteFileByUrl(resume.fileUrl);
         }
 
-        await this.prisma.resume.delete({ where: { id } });
-        return { message: 'ลบ Resume เรียบร้อยแล้ว' };
+        await this.prisma.resume.update({
+            where: { id },
+            data: {
+                fileUrl: null,
+                title: 'ยังไม่ได้อัปโหลดไฟล์',
+            },
+        });
+
+        return { message: 'ล้างข้อมูลไฟล์เรียบร้อยแล้ว แต่อ้างอิงเดิมยังคงอยู่' };
     }
 
     private async parseResumeText(text: string) {
         if (!text.trim()) {
-            throw new BadRequestException('ไม่พบข้อความในไฟล์ PDF กรุณาตรวจสอบว่าไฟล์เรซูเม่มีเนื้อหาที่อ่านได้');
+            throw new BadRequestException('ไม่พบข้อความในไฟล์ PDF');
         }
 
-        const apiKey = process.env.GEMINI_API_KEY;
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('🧪 [Dev Mode] Using Mock Data to save Gemini Quota');
+            return {
+                firstName: "สมชาย",
+                lastName: "ทดสอบ",
+                email: "test@example.com",
+                skills: ["NestJS", "React", "PostgreSQL"],
+                experienceYears: 5,
+                currentPosition: "Full Stack Developer",
+                experience: [],
+                education: []
+            };
+        }
+
+        const apiKey = this.configService.get<string>('GEMINI_API_KEY');
         if (!apiKey) {
-            throw new InternalServerErrorException('ระบบ AI Resume Parser ยังไม่ได้ตั้งค่า GEMINI_API_KEY');
+            throw new InternalServerErrorException('ระบบยังไม่ได้ตั้งค่า GEMINI_API_KEY');
         }
 
-        const ai = new GoogleGenAI({ apiKey });
-
-        const schema = {
-            type: Type.OBJECT,
-            properties: {
-                firstName: { type: Type.STRING, description: "The candidate's first name in Thai or English" },
-                lastName: { type: Type.STRING, description: "The candidate's last name in Thai or English" },
-                email: { type: Type.STRING, description: "Candidate's email address" },
-                phone: { type: Type.STRING, description: "Candidate's phone number, please format with no spaces or dashes e.g 0812345678" },
-                nationality: { type: Type.STRING, description: "Candidate's nationality" },
-                address: { type: Type.STRING, description: "Full street address if available" },
-                province: { type: Type.STRING, description: "Province name in Thai" },
-                district: { type: Type.STRING, description: "District/Amphoe name in Thai" },
-                subDistrict: { type: Type.STRING, description: "Sub-district/Tambon name in Thai" },
-                postalCode: { type: Type.STRING, description: "5 digit postal code" },
-                skills: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: "List of hard skills, technical skills, tools, programming languages, frameworks, or professional competencies found in the resume. Each item should be a concise skill name."
-                },
-                experienceYears: {
-                    type: Type.NUMBER,
-                    description: "Total years of work experience calculated from work history. If not determinable, omit."
-                },
-                expectedSalary: {
-                    type: Type.NUMBER,
-                    description: "Expected or desired monthly salary in Thai Baht if mentioned in the resume. Omit if not found."
-                },
-                currentPosition: {
-                    type: Type.STRING,
-                    description: "Current or most recent job title / desired position"
-                },
-            }
-        };
-
-        const prompt = `You are a professional resume parser. Extract all relevant information from the following resume text.
-For the "skills" field, include ALL hard skills, technical tools, programming languages, frameworks, software, certifications, and professional competencies mentioned anywhere in the resume.
-Output strict JSON only matching the requested schema. If a value is not found, omit the field.
-
-Resume Text:
-${text.substring(0, 15000)}
-`;
+        const genAI = new GoogleGenerativeAI(apiKey);
 
         try {
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: prompt,
-                config: {
-                    responseMimeType: "application/json",
-                    responseSchema: schema,
-                }
-            });
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            const prompt = `You are a professional resume parser. Extract information from the following text into a strict JSON format.
+        
+        REQUIRED JSON STRUCTURE:
+        {
+            "firstName": "string",
+            "lastName": "string",
+            "email": "string",
+            "phone": "string",
+            "skills": ["string"],
+            "experience": [{"company": "string", "role": "string", "years": "string"}],
+            "education": [{"school": "string", "degree": "string"}],
+            "experienceYears": number,
+            "currentPosition": "string"
+        }
 
-            if (!response.text) {
-                throw new Error('AI returned empty response');
+        INSTRUCTION:
+        - Return ONLY the JSON object. 
+        - For "skills", prioritize and combine:
+            1. Technical/Software skills (e.g., Programming, Software Development).
+            2. Professional Certifications or Language scores (e.g., TOEIC 980, IELTS 8.6).
+            3. Core job-related expertise.
+        - LIMIT the total skills to 10-12 most important items.
+        - DO NOT include driving licenses or non-professional hobbies.
+        - Ensure "currentPosition" reflect the professional title (e.g., Software Developer).
+
+        Resume Text: ${text.substring(0, 10000)}`;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const responseText = response.text();
+
+            const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) throw new Error('FORMAT_ERROR');
+
+            return JSON.parse(jsonMatch[0]);
+
+        } catch (error: any) {
+            console.error('--- Gemini 2.5 AI Error Details ---');
+            console.dir(error, { depth: null });
+
+            let friendlyMessage = 'การวิเคราะห์ล้มเหลว โปรดลองใหม่อีกครั้ง';
+
+            const errMsg = error.message?.toLowerCase() || '';
+            const status = error.status || error.response?.status;
+
+            if (status === 429 || errMsg.includes('429') || errMsg.includes('quota')) {
+                friendlyMessage = `โควต้าการใช้งาน AI เต็มแล้ว โปรดลองใหม่ในวันพรุ่งนี้`;
+            }
+            else if (status === 403 || status === 401) {
+                friendlyMessage = 'API Key ไม่ถูกต้องหรือไม่มีสิทธิ์ใช้งาน';
+            }
+            else if (errMsg.includes('safety')) {
+                friendlyMessage = 'ไฟล์ถูกระงับการวิเคราะห์เนื่องจากนโยบายความปลอดภัย';
             }
 
-            const parsedData = JSON.parse(response.text);
-
-            return {
-                ...parsedData,
-                rawTextSnippet: text.substring(0, 500),
-            };
-        } catch (error) {
-            console.error('Resume AI Parse Error:', error);
-            throw new InternalServerErrorException('ระบบ AI ไม่สามารถวิเคราะห์เรซูเม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง');
+            throw new InternalServerErrorException(`AI: ${friendlyMessage}`);
         }
     }
 
@@ -196,29 +216,43 @@ ${text.substring(0, 15000)}
 
         try {
             const fileBuffer = await this.uploadService.downloadFileBuffer(resume.fileUrl);
+            const currentFileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+
+            if (resume.fileHash === currentFileHash && resume.parsedData) {
+                console.log('🚀 [Cache Hit] ไฟล์เดิม ข้อมูลเดิม ดึงจาก DB ทันที');
+                return resume.parsedData;
+            }
+
+            console.log('🧠 [Cache Miss] กำลังส่งให้ Gemini วิเคราะห์...');
             const data = await (pdfParse as any)(fileBuffer);
-            return await this.parseResumeText(data.text || '');
+            const aiResult = await this.parseResumeText(data.text || '');
+
+            await this.prisma.resume.update({
+                where: { id },
+                data: {
+                    parsedData: aiResult as any,
+                    fileHash: currentFileHash,
+                    skills: aiResult.skills || [],
+                    experience: aiResult.experience || [],
+                    education: aiResult.education || [],
+                    summary: `Experience: ${aiResult.experienceYears} years, Position: ${aiResult.currentPosition}`,
+                }
+            });
+
+            return aiResult;
         } catch (error) {
             console.error('Parse Stored Resume Error:', error);
-            if (
-                error instanceof BadRequestException ||
-                error instanceof NotFoundException ||
-                error instanceof InternalServerErrorException
-            ) {
+            if (error instanceof BadRequestException || error instanceof NotFoundException || error instanceof InternalServerErrorException) {
                 throw error;
             }
             throw new BadRequestException('ไม่สามารถวิเคราะห์ไฟล์ Resume ได้ โปรดลองใหม่อีกครั้ง');
         }
     }
 
-    // ใน resumes.service.ts
     async findAll(query: { categoryId?: string; search?: string }) {
         const { categoryId, search } = query;
-
-        // 🚩 1. ประกาศ Array สำหรับเก็บเงื่อนไขก่อน
         const andConditions: any[] = [];
 
-        // 🚩 2. จัดการเรื่องหมวดหมู่ (CategoryId)
         if (categoryId) {
             let searchKeyword = '';
             switch (categoryId) {
@@ -232,7 +266,6 @@ ${text.substring(0, 15000)}
             }
 
             if (searchKeyword) {
-                // ดันเงื่อนไขเข้าไปใน Array แทนการเขียน where.user 直接
                 andConditions.push({
                     user: {
                         workHistories: {
@@ -250,7 +283,6 @@ ${text.substring(0, 15000)}
             }
         }
 
-        // 🚩 3. จัดการเรื่องช่อง Search
         if (search) {
             andConditions.push({
                 OR: [
@@ -267,12 +299,10 @@ ${text.substring(0, 15000)}
             });
         }
 
-        // 🚩 4. ประกาศตัวแปร where ไว้ตรงนี้ (ก่อนจะเอาไปใช้ข้างล่าง)
         const where = andConditions.length > 0 ? { AND: andConditions } : {};
 
-        // 🚩 5. เรียกใช้ Prisma
         return this.prisma.resume.findMany({
-            where: where, // ตอนนี้ 'where' ถูกประกาศเรียบร้อยแล้ว และโครงสร้างถูกต้อง
+            where: where,
             include: {
                 user: {
                     include: {
@@ -284,10 +314,7 @@ ${text.substring(0, 15000)}
         });
     }
 
-    // เพิ่มฟังก์ชันนี้เข้าไปที่ท้าย Class ResumesService
     async getHomepageCategories() {
-        // ใช้ชื่อตารางให้ตรงกับ Prisma ของคุณ (ถ้าใน schema คือ workHistory หรือ work_histories)
-        // สมมติว่าใช้ workHistory ตามโค้ดก่อนหน้าของคุณ
         const allWorkHistory = await this.prisma.workHistory.findMany({
             select: {
                 businessType: true,

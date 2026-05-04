@@ -79,4 +79,22 @@ export class UpdateProfileDto {
     @ApiPropertyOptional({ description: 'เปิดเผยข้อมูลโปรไฟล์' })
     @IsOptional()
     isPublic?: boolean;
+
+    @ApiPropertyOptional({ description: 'ประสบการณ์ทำงาน (ปี)', example: 5 })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    @Max(100)
+    experience?: number;
+
+    @ApiPropertyOptional({ description: 'ศาสนา', example: 'พุทธ' })
+    @IsOptional()
+    @IsString()
+    religion?: string;
+
+    @ApiPropertyOptional({ description: 'เงินเดือนที่ต้องการ', example: 25000 })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    expectedSalary?: number;
 }
