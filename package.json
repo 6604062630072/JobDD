@@ -16,7 +16,9 @@
     "db:studio": "bun run --filter @jobsabuy/api prisma studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "clean": "turbo run clean && rimraf node_modules"
+    "clean": "turbo run clean && rimraf node_modules",
+    "build:api": "cd apps/api && npx prisma generate && tsc -p tsconfig.json",
+    "build:web": "cd apps/web && next build"
   },
   "devDependencies": {
     "@prisma/client": "5.22.0",
