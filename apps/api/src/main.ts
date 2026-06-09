@@ -57,11 +57,11 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document);
 
     const port = process.env.PORT || 3001;
-    await app.listen(port, '0.0.0.0');
-    //const url = await app.getUrl();
-    //console.log(`🚀 JobSabuy API running on http://localhost:${url}`);
-    //console.log(`📚 Swagger Docs: http://localhost:${url}/api/docs`);
-    console.log(`🚀 JobSabuy API is ready at: http://192.168.1.33:${port}/api/v1`);
-    console.log(`📚 Swagger Docs: http://192.168.1.33:${port}/api/docs`);
+    if (process.env.NODE_ENV !== 'production') {
+        await app.listen(port, '0.0.0.0');
+        console.log(`🚀 API is ready at: http://localhost:${port}/api/v1`);
+    } else {
+        await app.listen(port);
+    }
 }
 bootstrap();

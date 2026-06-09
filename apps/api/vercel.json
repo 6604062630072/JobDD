@@ -2,5 +2,11 @@
   "version": 2,
   "buildCommand": "cd ../.. && bun install && turbo run build --filter=@jobsabuy/api",
   "outputDirectory": "dist",
-  "framework": "nestjs"
+  "framework": "nestjs",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
 }
