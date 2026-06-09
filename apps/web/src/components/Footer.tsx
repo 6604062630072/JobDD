@@ -24,7 +24,7 @@ export const Footer: React.FC = () => {
                             />
                         </div>
                         <span className="text-white font-bold text-xl tracking-wide">
-                            JobDD
+                            WorksDD
                         </span>
                     </Link>
                     <p className="text-sm leading-relaxed mb-8 text-gray-400">
