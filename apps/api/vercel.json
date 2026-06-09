@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && bun install && turbo run build --filter=@jobsabuy/api",
-  "outputDirectory": "dist",
   "framework": "nestjs",
+  "buildCommand": "prisma generate && prisma db push && tsc -p tsconfig.json",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/(.*)",
