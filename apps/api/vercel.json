@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": "nestjs",
-  "buildCommand": "prisma generate && prisma db push && tsc -p tsconfig.json",
+  "buildCommand": "npx prisma generate && npx prisma db push && tsc -p tsconfig.json",
   "outputDirectory": "dist",
   "rewrites": [
     {
